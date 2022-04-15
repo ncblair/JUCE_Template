@@ -1,0 +1,14 @@
+This End User License Agreement (the “Agreement”) is a legal and binding agreement between user (“You” or “Your”), and Nathan Blair, for the use of the Karp plugin within your recording software and computers.  If you do not agree to the terms herein, please do not indicate your acceptance of the terms.
+
+Downloads:  The purchaser of the product may download the software as many times as necessary.
+
+Multiple Installations: Install it wherever you want. It’s free.
+
+Distribution: You are not permitted to distribute the software without the developer's permission. This includes, but is not limited to, the distribution on magazine covers or software review websites. No license is granted to redistribute the software as part of another software program, including video games, DAWs, etc.
+
+Liability: By installing this software you agree to use it at your own risk. The developer cannot be held responsible for any damages caused as a result of its use.
+
+Copyright: Nathan Blair owns the software and all trade secrets, copyrights, and other intellectual property rights therein.
+
+VST and VST3 are trademarks of Steinberg Media Technologies GmbH. 
+Audio Unit is a trademark of Apple, Inc. 
