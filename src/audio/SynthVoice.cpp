@@ -5,6 +5,7 @@ void SynthVoice::noteStarted() {
     vel = juce::Decibels::decibelsToGain(vel * 18.0f - 18.0f); //18db velocity range default
     note_on = true;
     phase = 0.0;
+    ms_elapsed = 0.0;
 
     notePitchbendChanged(); // used to set frequency
 
@@ -70,9 +71,10 @@ void SynthVoice::renderNextBlock (juce::AudioBuffer< float > &outputBuffer, int 
 
             // write result to output buffer
             // highpass to remove DC offset
-            write_pointer[i] = std::sin(2.0*M_PI*phase)*gain.getNextValue();
+            write_pointer[i] = std::sin(2.0*M_PI*phase)*gain.value_at(ms_elapsed);
 
             phase += frequency / currentSampleRate;
+            ms_elapsed += 1000./currentSampleRate;
         }
         
         // apply envelope

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Matrix.h"
 
 // Custom Parameters with flag for if it's automatable
 
@@ -16,6 +17,28 @@ class BoolParameter : public juce::AudioParameterBool {
     bool isAutomatable() const override {
         return automatable;
     }
+};
+
+class ModulatedFloatParam {
+  public:
+    ModulatedFloatParam() {}
+    float value_at(double ms_elapsed, bool note_released) {
+        auto name = param_ptr->getName();
+
+        float v = 0.0f;
+        std::vector<ModulatorInfo> modulators = matrix_ptr->find(name);
+        for (int i = 0; i < modulators.size(); ++i) {
+            auto m = modulators[i];
+            if (m.is_active) {
+                v += m.depth * m.mod_ptr->get(ms_elapsed, note_released);
+            }
+        }
+        v = std::clamp(v + param_ptr->getNormalisedValue(), 0.0f, 1.0f);
+        return param_ptr->unnormalized_value(v);
+    }
+  private:
+    ParamAttachment* param_ptr; //normal
+    Matrix* matrix_ptr;
 };
 
 // class PrecomputedValue {

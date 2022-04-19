@@ -166,6 +166,17 @@ public:
      */
     std::function<void()> onParameterChangedAsync;
 
+    //CUSTOM FUNCTION FOR GETTING NAME
+    juce::String getName() {
+        return parameter->getName();
+        
+    }
+
+    ValueType unnormalize(const float normalized_value) {
+        return parameter->getNormalisableRange().convertFrom0to1(normalized_value);
+        
+    }
+
 private:
 
     void initialUpdate()

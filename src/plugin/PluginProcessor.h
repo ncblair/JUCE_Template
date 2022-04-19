@@ -6,6 +6,7 @@
 #include "../audio/ADSR.h"
 #include "../util/ParamAttachment.h"
 #include "../util/CustomParameters.h"
+#include "../util/Matrix.h"
 
 //==============================================================================
 class AudioPluginAudioProcessor  : public juce::AudioProcessor
@@ -58,6 +59,7 @@ public:
     void update_mpe_param();
 
     ADSRParent envelopes{3};
+    Matrix matrix;
 
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
