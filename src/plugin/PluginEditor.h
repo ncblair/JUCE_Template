@@ -4,13 +4,14 @@
 #include "PluginProcessor.h"
 #include "../interface/CustomLookAndFeel.h"
 #include "../interface/FooterComponent.h"
+#include "../interface/ADSRComponent.h"
 // #include "bgfx/bgfx.h"
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    explicit AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor&);
+    explicit AudioPluginAudioProcessorEditor (PluginProcessor&);
     ~AudioPluginAudioProcessorEditor() override;
 
     //==============================================================================
@@ -22,14 +23,20 @@ private:
 
     std::unique_ptr<FooterComponent> footer;
     std::unique_ptr<juce::MidiKeyboardComponent> midi_keyboard;
+    std::unique_ptr<ADSRParentComponent> envelopes;
+    std::unique_ptr<LabeledKnobComponent> gain_knob;
+
     juce::TooltipWindow tooltip{ this };
+    
     // juce::Component midi_keyboard{"MidiKeyboard"};
     // juce::Component panel_1{"Panel1"};
     // juce::Component panel_envelope{"PanelEnvelope"};
 
-    juce::Slider gain_slider{juce::Slider::Rotary, juce::Slider::TextEntryBoxPosition::TextBoxBelow};
-    juce::Label gain_label{"GainLabel", "Gain"};
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gain_slider_attachment;
+    // juce::Slider gain_slider{juce::Slider::Rotary, juce::Slider::TextEntryBoxPosition::TextBoxBelow};
+    // juce::Label gain_label{"GainLabel", "Gain"};
+    // std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gain_slider_attachment;
+
+    
 
     // juce::Label mpe_button_label{"Enable MPE", "enable mpe"};
     // juce::ToggleButton mpe_button;
@@ -40,7 +47,7 @@ private:
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    AudioPluginAudioProcessor& processorRef;
+    PluginProcessor& processorRef;
 
     // UNCOMMENT FOR: Background Image
     //const juce::Image bg_img = juce::ImageCache::getFromMemory(BinaryData::BG_png, BinaryData::BG_pngSize);

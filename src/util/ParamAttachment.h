@@ -168,7 +168,7 @@ public:
 
     //CUSTOM FUNCTION FOR GETTING NAME
     juce::String getName() {
-        return parameter->getName();
+        return parameter->getName(255);
         
     }
 

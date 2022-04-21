@@ -1,25 +1,39 @@
 #include "SynthVoice.h"
 
 void SynthVoice::noteStarted() {
+    update_parameters();
+
     vel = currentlyPlayingNote.noteOnVelocity.asUnsignedFloat();
     vel = juce::Decibels::decibelsToGain(vel * 18.0f - 18.0f); //18db velocity range default
     note_on = true;
+    is_released = false;
+    release_time = std::numeric_limits<float>::max();
     phase = 0.0;
     ms_elapsed = 0.0;
+    samples_to_next_control_update = processor->CONTROL_RATE_SAMPLES;
 
     notePitchbendChanged(); // used to set frequency
 
-    adsr.reset();
-    adsr.noteOn();
+    // adsr.reset();
+    // adsr.noteOn();
 }
 
 void SynthVoice::noteStopped(bool allowTailOff) {
-    adsr.noteOff();
+    is_released = true;
+    release_time = ms_elapsed;
     juce::ignoreUnused (allowTailOff);
 }
 
 bool SynthVoice::isActive() const{
     return note_on;
+}
+
+double SynthVoice::getReleaseTime() {
+    return release_time;
+}
+
+double SynthVoice::getMsElapsed() {
+    return ms_elapsed;
 }
 
 void SynthVoice::notePitchbendChanged() {
@@ -37,15 +51,24 @@ void SynthVoice::noteKeyStateChanged() {
     
 }
 
-void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels) {
-    adsr.setSampleRate(sampleRate);
-    adsr.setParameters(adsr_params);
+void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels, PluginProcessor* processor_ptr) {
+    // adsr.setSampleRate(sampleRate);
+    // adsr.setParameters(adsr_params);
 
-    process_buffer.setSize(1, samplesPerBlock * 2); // 2x for safety
+    // process_buffer.setSize(1, samplesPerBlock * 2); // 2x for safety
 
-    gain.reset(sampleRate, 0.001);
+    // add parameters
+    for (auto& param_name : VOICE_PARAM_NAMES) {
+        parameters[param_name] = juce::SmoothedValue<float>();
+        parameters[param_name].reset(sampleRate, 0.001);
+    }
 
-    juce::ignoreUnused (outputChannels);
+    // gain.reset(sampleRate, 0.001);
+    processor = processor_ptr;
+
+    write_pointers.resize(num_channels);
+
+    // juce::ignoreUnused (outputChannels);
 }
 
 void SynthVoice::setCurrentSampleRate (double newRate) {
@@ -55,43 +78,129 @@ void SynthVoice::setCurrentSampleRate (double newRate) {
     }
 }
 
-void SynthVoice::renderNextBlock (juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) {
+void SynthVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) {
+    // Every CONTROL_RATE_SAMPLES samples, update parameters for the voice
+
     if (isActive()) {
-        if (numSamples > process_buffer.getNumSamples()) {
-            // THIS SHOULDN'T HAPPEN, ALLOCATES ON AUDIO BUFFER IN WORST CASE
-            process_buffer.setSize(1, numSamples * 2);
-            std::cout << "WARNING: Allocate on Audio Buffer in SynthVoice::renderNextBlock" << std::endl;
+        // SET UP WRITE POINTERS FOR EACH CHANNEL
+        auto num_channels = write_pointers.size();
+        for (int c = 0; c < num_channels; ++c) {
+            write_pointers[c] = outputBuffer.getWritePointer(c);
         }
+        // ITERATE THROUGH SAMPLES
+        for (int i = startSample; i < startSample + numSamples; ++i) {
+            // STEP PARAMETERS
+            for (auto& [param_name, param] : parameters) {
+                param.getNextValue();
+            }
+            float amplitude = gain.getNextValue();
 
-        process_buffer.clear();
-        auto write_pointer = process_buffer.getWritePointer(0);
-
-        for (int i = 0; i < numSamples; ++i) {
-            // GET NEXT SAMPLE / UPDATE STEP
-
-            // write result to output buffer
-            // highpass to remove DC offset
-            write_pointer[i] = std::sin(2.0*M_PI*phase)*gain.value_at(ms_elapsed);
-
+            // DO LOGIC HERE FOR ALL CHANNELS
+            float sample = std::sin(2.0*M_PI*phase)*parameters["LEVEL"].getCurrentValue();
+            sample *= amplitude;
+            // ITERATE OVER CHANNELS
+            for (int c = 0; c < num_channels; ++c) {
+                // WRITE NEXT SAMPLE
+                write_pointers[c][i] = sample;
+            }
+            // UPDATE STATE
             phase += frequency / currentSampleRate;
-            ms_elapsed += 1000./currentSampleRate;
         }
-        
-        // apply envelope
-        adsr.applyEnvelopeToBuffer(process_buffer, 0, numSamples);
 
-        // add to output buffer
-        outputBuffer.addFrom(0, startSample, process_buffer, 0, 0, numSamples, vel);
-
-        if (!adsr.isActive()) {
-            // TURN VOICE OFF
+        if (is_released && gain.getCurrentValue() == 0.0f) {
+            // NOTE_OFF
             note_on = false;
-            clearCurrentNote();
-         }
+        }
     }
 }
 
-void SynthVoice::update_gain_param(const float param) {
-    auto amplitude = juce::Decibels::decibelsToGain(param);
-    gain.setTargetValue(amplitude);
+// void SynthVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) {
+//     // Every CONTROL_RATE_SAMPLES samples, update parameters for the voice
+
+//     if (isActive()) {
+//         auto samples_left = numSamples;
+//         // split render loop into chunks of CONTROL_RATE_SAMPLES samples
+//         while (samples_left != 0) {
+//             auto samples_this_time = std::min(samples_left, samples_to_next_control_update);
+//             // render next block
+//             renderNextBlockInternal(outputBuffer, numSamples - samples_left, samples_this_time);
+
+//             // update logic variables
+//             samples_to_next_control_update -= samples_this_time;
+//             samples_left -= samples_this_time;
+//             ms_elapsed += samples_this_time*1000./currentSampleRate;
+
+//             // if we have processed CONTROL_RATE_SAMPLES samples, update parameters
+//             if (samples_to_next_control_update == 0) {
+//                 samples_to_next_control_update = processor->CONTROL_RATE_SAMPLES;
+//                 update_parameters();
+//             }
+//         }
+//     }
+// }
+
+// void SynthVoice::renderNextBlockInternal(juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) {
+//     /*
+//     -> Parameters have been updated, voice is active. this is our DSP block. 
+//     */
+//     auto write_pointer = outputBuffer.getWritePointer(0);
+
+//     for (int i = startSample; i < startSample + numSamples; ++i) {
+//         // GET NEXT SAMPLE / UPDATE STEP
+
+//         // write result to output buffer
+//         // highpass to remove DC offset
+//         write_pointer[i] = std::sin(2.0*M_PI*phase)*parameters["LEVEL"].getNextValue();
+
+//         phase += frequency / currentSampleRate;
+//     }
+// }
+
+void SynthVoice::update_parameters() {
+    for (auto& [param_name, param] : parameters) {
+        param.setTargetValue(processor->matrix.value_at(param_name, ms_elapsed, release_time));
+    }
+    // gain is taken directly from env 1 value, not an apvts parameter
+    gain.setTargetValue(processor->matrix.get_modulator("ADSR_1")->get(ms_elapsed, release_time));
 }
+
+// void SynthVoice::renderNextBlock (juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) {
+//     if (isActive()) {
+//         if (numSamples > process_buffer.getNumSamples()) {
+//             // THIS SHOULDN'T HAPPEN, ALLOCATES ON AUDIO BUFFER IN WORST CASE
+//             process_buffer.setSize(1, numSamples * 2);
+//             std::cout << "WARNING: Allocate on Audio Buffer in SynthVoice::renderNextBlock" << std::endl;
+//         }
+
+//         process_buffer.clear();
+//         auto write_pointer = process_buffer.getWritePointer(0);
+
+//         for (int i = 0; i < numSamples; ++i) {
+//             // GET NEXT SAMPLE / UPDATE STEP
+
+//             // write result to output buffer
+//             // highpass to remove DC offset
+//             write_pointer[i] = std::sin(2.0*M_PI*phase)*gain.getNextValue();
+
+//             phase += frequency / currentSampleRate;
+//             ms_elapsed += 1000./currentSampleRate;
+//         }
+        
+//         // apply envelope
+//         adsr.applyEnvelopeToBuffer(process_buffer, 0, numSamples);
+
+//         // add to output buffer
+//         outputBuffer.addFrom(0, startSample, process_buffer, 0, 0, numSamples, vel);
+
+//         if (!adsr.isActive()) {
+//             // TURN VOICE OFF
+//             note_on = false;
+//             clearCurrentNote();
+//          }
+//     }
+// }
+
+// void SynthVoice::update_gain_param(const float param) {
+//     auto amplitude = juce::Decibels::decibelsToGain(param);
+//     gain.setTargetValue(amplitude);
+// }

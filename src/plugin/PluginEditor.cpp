@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
+AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
 {
     // Make sure that before the constructor has finished, you've set the
@@ -13,16 +13,27 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
                         processorRef.keyboard_state, 
                         juce::KeyboardComponentBase::Orientation::horizontalKeyboard
     );
+    envelopes = std::make_unique<ADSRParentComponent>(
+        processorRef.apvts, 
+        3 // number of envelope sub-components
+    );
+
+    gain_knob = std::make_unique<LabeledKnobComponent>(
+        processorRef.apvts, // apvts
+        "LEVEL", // apvts param ID
+        "Gain (in decibels) of the synth voice", // Knob Tooltip
+        "Level" // Knob Label
+    );
 
     setSize (600, 400);
     //look and feel
     setLookAndFeel(&look_and_feel);
 
     //sliders
-    addAndMakeVisible(gain_slider);
-    gain_slider_attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, "GAIN_PARAM", gain_slider);
-    gain_slider.setRotaryParameters (M_PI * 5.0f / 4.0f, M_PI * 11.0f / 4.0f, true);
-    gain_slider.setTooltip("Gain in Decibels Slider");
+    // addAndMakeVisible(gain_slider);
+    // gain_slider_attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, "GAIN", gain_slider);
+    // gain_slider.setRotaryParameters (M_PI * 5.0f / 4.0f, M_PI * 11.0f / 4.0f, true);
+    // gain_slider.setTooltip("Gain in Decibels Slider");
 
     // footer
     addAndMakeVisible(*footer);
@@ -30,15 +41,23 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // midi keyboard
     addAndMakeVisible(*midi_keyboard);
 
+    // envelopes
+    addAndMakeVisible(*envelopes);
+
+    // knob
+    addAndMakeVisible(*gain_knob);
+
     // tooltip
     addAndMakeVisible(tooltip);
     tooltip.setMillisecondsBeforeTipAppears(0);
 
-    // labels
-    addAndMakeVisible(gain_label);
-    gain_label.setJustificationType(juce::Justification::centred);
-    // gain_label.setText ("Gain", juce::dontSendNotification);
-    gain_label.attachToComponent (&gain_slider, false); // false sets to top, true sets to left
+    // // labels
+    // addAndMakeVisible(gain_label);
+    // gain_label.setJustificationType(juce::Justification::centred);
+    // // gain_label.setText ("Gain", juce::dontSendNotification);
+    // gain_label.attachToComponent (&gain_slider, false); // false sets to top, true sets to left
+
+
 
     // resizable window
     setResizable(true, true);
@@ -86,9 +105,10 @@ void AudioPluginAudioProcessorEditor::resized()
     area.removeFromBottom(proportionOfHeight(look_and_feel.tooltip_height));
     auto sw = getWidth() / 600.0;
     auto sh = getHeight() / 400.0;
-    gain_slider.setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
+    gain_knob->setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     midi_keyboard->setBounds(area.removeFromBottom(proportionOfHeight(0.1375f)));
     footer->setBounds(area.removeFromTop(proportionOfHeight(0.0625f)));
+    envelopes->setBounds(area);
     // title_label.setBounds(0, 361, 136.5, 39);
     // created_by_label.setBounds(380.75, 361, 219.25, 39);
     look_and_feel.setFontSize(15.0f*sw);

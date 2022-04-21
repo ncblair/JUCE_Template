@@ -1,18 +1,19 @@
-#include <JuceHeader.h>
 #pragma once
+#include <JuceHeader.h>
+#include "Modulator.h"
 
-class ParamWithModList {
-  public:
-    ParamAttachment* param;
-    std::map<juce::String, ModulatorInfo> modulators;
+// class ParamWithModList {
+//   public:
+//     // ParamAttachment* param;
+//     std::map<juce::String, ModulatorInfo> modulators;
 
-    int& ParamWithModList::operator[](const int& index) {
-        return modulators[index];
-    }
-    int num_modulators() {
-        return modulators.size();
-    }
-};
+//     int& ParamWithModList::operator[](const int& index) {
+//         return modulators[index];
+//     }
+//     int num_modulators() {
+//         return modulators.size();
+//     }
+// };
 
 struct ModulatorInfo {
     bool is_active{0};
@@ -20,45 +21,66 @@ struct ModulatorInfo {
     Modulator* mod_ptr{nullptr};
 };
 
+
+
 class Matrix {
   public:
-    void createMatrix(std::vector<Modulator*> modulators, std::vector<ParamAttachment*> params) {
+    Matrix(const juce::StringArray& param_names, juce::AudioProcessorValueTreeState* apvts_, std::map<juce::String, Modulator>* modulators) {
         // called in processor constructor, not while audio is running though
+        // TODO change modulator to a map
+        apvts = apvts_;
+        // mods = modulators;
 
-        for (ParamAttachment* p: params) {
-            auto p_name = p->getName();
-            matrix.emplace(name);
-            for (Modulator* m : modulators) {
-                auto m_name = m->getName(m_name)
-                matrix[p_name].emplace(m_name);
+        // create modulator dictionary
+        // for (Modulator m : modulators) {
+        //     mods[m.getName()] = m;
+        // }
+        // create matrix
+        for (juce::String p_name : param_names) {
+            // auto p_name = p->getName();
+            // matrix.emplace(p_name);
+            matrix[p_name] = std::map<juce::String, ModulatorInfo>();
+            for (Modulator& m : modulators) {
+                auto m_name = m.getName();
+                matrix[p_name][m_name] = ModulatorInfo();
                 matrix[p_name][m_name].is_active = 0;
                 matrix[p_name][m_name].depth = 0;
-                matrix[p_name][m_name].mod_ptr = m;
-                matrix[name].param = p;
+                matrix[p_name][m_name].mod_ptr = &m;
+                // matrix[name].param = ;
             }
         }
     }
 
-    float value_at(juce::String param_name, double ms_elapsed, bool note_released) {
+    float value_at(juce::String param_name, double ms_elapsed, double release_time=std::numeric_limits<float>::max()) {
 
+        // get all modulators and add up there total value to v
         float v = 0.0f;
-        ParamWithModList param_and_mods = matrix.find(param_name);
-        for (int i = 0; i < param_and_mods.num_modulators(); ++i) {
-            auto m = param_and_mods[i];
+        auto modulators = matrix[param_name];
+        for (auto const& [m_name, m] : modulators) {
             if (m.is_active) {
-                v += m.depth * m.mod_ptr->get(ms_elapsed, note_released);
+                v += m.depth * m.mod_ptr->get(ms_elapsed, release_time);
             }
         }
-        v = std::clamp(v + param_and_mods.param->getNormalisedValue(), 0.0f, 1.0f);
-        return param_and_mods.param->unnormalized_value(v);
+        // add v to the parameter value and clamp
+        auto param_range = apvts->getParameterRange(param_name);
+        auto param_value = apvts->getRawParameterValue(param_name)->load();
+        v = std::clamp(v + param_range.convertTo0to1(param_value), 0.0f, 1.0f);
+        return param_range.convertFrom0to1(param_value);
     }
 
-    void connect(juce::String param_name, juce::String mod_name)
+    // Modulator* get_modulator(juce::String modulator_name) {
+    //     return mods[modulator_name];
+    // }
 
-    std::vector<ModulatorInfo> find(juce::String param_name) {
-        return matrix.find(param_name);
-    }
+    // void connect(juce::String param_name, juce::String mod_name)
+    // void setDepth(juce::String param_name, juce::String mod_name, float depth)
+
+    // std::vector<ModulatorInfo> find(juce::String param_name) {
+    //     return matrix.find(param_name);
+    // }
 
   private:
-    std::map<juce::String, ParamWithModList> matrix;
+    std::map<juce::String, std::map<juce::String, ModulatorInfo>> matrix;
+    // std::map<juce::String, Modulator*> mods;
+    juce::AudioProcessorValueTreeState* apvts;
 };

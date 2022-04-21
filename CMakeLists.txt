@@ -70,13 +70,22 @@ juce_generate_juce_header(TEMPLATE)
 
 target_sources(TEMPLATE
     PRIVATE
-        src/plugin/PluginEditor.cpp
+        src/plugin/PluginProcessorBase.cpp
         src/plugin/PluginProcessor.cpp
+        src/plugin/PluginEditor.cpp
         src/audio/SynthVoice.cpp
+        src/audio/ADSR.cpp
         src/interface/CustomLookAndFeel.cpp
         src/interface/FooterComponent.h
+        src/interface/LabeledKnobComponent.h
+        src/interface/ADSRComponent.h
         src/util/CustomParameters.h
-        src/util/ParamAttachment.h)
+        src/util/ParamAttachment.h
+        src/util/Matrix.h
+        src/util/Modulator.h)
+
+# use c++ 17
+target_compile_features(TEMPLATE PRIVATE cxx_std_17)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use
@@ -119,3 +128,5 @@ target_link_libraries(TEMPLATE
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+
