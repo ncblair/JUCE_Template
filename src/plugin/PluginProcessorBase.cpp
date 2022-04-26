@@ -1,6 +1,6 @@
 /*
-Created by Nathan Blair
-Last Edited April 19, 2022
+Created by:  Nathan Blair
+Last Edited: April 19, 2022
 
 -> Base class for the JUCE audio processor that interacts the host
 */
@@ -18,6 +18,7 @@ PluginProcessorBase::PluginProcessorBase()
                      #endif
                        )
 {
+    std::cout << "Processor Base Constructor" << std::endl;
 }
 
 PluginProcessorBase::~PluginProcessorBase()

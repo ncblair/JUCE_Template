@@ -1,7 +1,8 @@
 #pragma once
 
+class PluginProcessor;
+
 #include <JuceHeader.h>
-#include "../plugin/PluginProcessor.h"
 // #include "../util/ParamAttachment.h"
 
 class SynthVoice : public juce::MPESynthesiserVoice {
@@ -43,16 +44,16 @@ class SynthVoice : public juce::MPESynthesiserVoice {
     };
     
     //Channel Management
-    std::vector<float> write_pointers;
+    std::vector<float*> write_pointers;
     
     // Voice Management
     bool note_on{false};
     double ms_elapsed;
     bool is_released{true};
-    double release_time{std::numeric_limits<float>::max()};
+    double release_time{std::numeric_limits<double>::max()};
 
     // Voice Parameter/Control Management
-    int samples_to_next_control_update;
+    // int samples_to_next_control_update;
 
     // MIDI information
     float vel;

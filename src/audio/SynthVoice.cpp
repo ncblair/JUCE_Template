@@ -1,4 +1,6 @@
 #include "SynthVoice.h"
+#include "../plugin/PluginProcessor.h"
+#include "../util/Matrix.h"
 
 void SynthVoice::noteStarted() {
     update_parameters();
@@ -7,12 +9,13 @@ void SynthVoice::noteStarted() {
     vel = juce::Decibels::decibelsToGain(vel * 18.0f - 18.0f); //18db velocity range default
     note_on = true;
     is_released = false;
-    release_time = std::numeric_limits<float>::max();
+    release_time = std::numeric_limits<double>::max();
     phase = 0.0;
     ms_elapsed = 0.0;
-    samples_to_next_control_update = processor->CONTROL_RATE_SAMPLES;
+    // samples_to_next_control_update = processor->CONTROL_RATE_SAMPLES;
 
     notePitchbendChanged(); // used to set frequency
+    std::cout << "NOTE ON: " << frequency << "hz" << std::endl;
 
     // adsr.reset();
     // adsr.noteOn();
@@ -21,6 +24,7 @@ void SynthVoice::noteStarted() {
 void SynthVoice::noteStopped(bool allowTailOff) {
     is_released = true;
     release_time = ms_elapsed;
+    std::cout << "NOTE OFF: " << frequency << "hz" << std::endl;
     juce::ignoreUnused (allowTailOff);
 }
 
@@ -63,10 +67,10 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outpu
         parameters[param_name].reset(sampleRate, 0.001);
     }
 
-    // gain.reset(sampleRate, 0.001);
+    gain.reset(sampleRate, 0.001);
     processor = processor_ptr;
 
-    write_pointers.resize(num_channels);
+    write_pointers.resize(outputChannels);
 
     // juce::ignoreUnused (outputChannels);
 }
@@ -90,22 +94,33 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int sta
         // ITERATE THROUGH SAMPLES
         for (int i = startSample; i < startSample + numSamples; ++i) {
             // STEP PARAMETERS
-            for (auto& [param_name, param] : parameters) {
+            for (const auto& [param_name, param] : parameters) {
                 param.getNextValue();
             }
             float amplitude = gain.getNextValue();
 
             // DO LOGIC HERE FOR ALL CHANNELS
-            float sample = std::sin(2.0*M_PI*phase)*parameters["LEVEL"].getCurrentValue();
-            sample *= amplitude;
+            float level_gain = juce::Decibels::decibelsToGain(parameters["LEVEL"].getCurrentValue());
+            float sample = juce::dsp::FastMathApproximations::sin(2.0*M_PI*phase);
+            sample *= amplitude*level_gain*vel;
+            // std::cout << "amp " << amplitude << std::endl;
+            // std::cout << "vel " << vel << std::endl;
+            // std::cout << "level " << parameters["LEVEL"].getCurrentValue() << std::endl;
+            // std::cout << "level_gain " << level_gain << std::endl;
+            // std::cout << amplitude*level_gain*vel << std::endl;
             // ITERATE OVER CHANNELS
             for (int c = 0; c < num_channels; ++c) {
                 // WRITE NEXT SAMPLE
-                write_pointers[c][i] = sample;
+                write_pointers[c][i] += sample;
             }
             // UPDATE STATE
             phase += frequency / currentSampleRate;
+            while (phase > 0.5) { // phase in (-0.5, 0.5]
+                phase -= 1.0;
+            }
         }
+        // advance time
+        ms_elapsed += double(numSamples)*1000.0 / currentSampleRate;
 
         if (is_released && gain.getCurrentValue() == 0.0f) {
             // NOTE_OFF
@@ -158,10 +173,10 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int sta
 
 void SynthVoice::update_parameters() {
     for (auto& [param_name, param] : parameters) {
-        param.setTargetValue(processor->matrix.value_at(param_name, ms_elapsed, release_time));
+        param.setTargetValue(processor->matrix->value_at(param_name, ms_elapsed, release_time));
     }
     // gain is taken directly from env 1 value, not an apvts parameter
-    gain.setTargetValue(processor->matrix.get_modulator("ADSR_1")->get(ms_elapsed, release_time));
+    gain.setTargetValue(processor->modulator_value_at("ADSR_1", ms_elapsed, release_time));
 }
 
 // void SynthVoice::renderNextBlock (juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) {

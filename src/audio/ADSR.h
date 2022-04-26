@@ -28,7 +28,7 @@
 class ADSRModulator : public Modulator{
   public: 
     ADSRModulator(juce::String attack, juce::String decay, juce::String sustain, juce::String release);
-    void prepareToPlay(PluginProcessor* processor);
+    void prepareToPlay(PluginProcessor* processor) override;
     // void set(float a, float d, float s, float r);
     // void set(Matrix* m);
     float get(float ms, float release_time=std::numeric_limits<float>::max()) override;

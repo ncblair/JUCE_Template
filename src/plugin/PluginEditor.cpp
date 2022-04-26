@@ -1,9 +1,13 @@
 #include "PluginEditor.h"
+#include "../interface/FooterComponent.h"
+#include "../interface/ADSRComponent.h"
+#include "../interface/LabeledKnobComponent.h"
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
 {
+    std::cout << "EDITOR CONSTRUCTOR" << std::endl;
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
@@ -21,7 +25,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     gain_knob = std::make_unique<LabeledKnobComponent>(
         processorRef.apvts, // apvts
         "LEVEL", // apvts param ID
-        "Gain (in decibels) of the synth voice", // Knob Tooltip
+        "level (in decibels) of the synth voice", // Knob Tooltip
         "Level" // Knob Label
     );
 
@@ -108,7 +112,9 @@ void AudioPluginAudioProcessorEditor::resized()
     gain_knob->setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     midi_keyboard->setBounds(area.removeFromBottom(proportionOfHeight(0.1375f)));
     footer->setBounds(area.removeFromTop(proportionOfHeight(0.0625f)));
-    envelopes->setBounds(area);
+    auto left = area.removeFromLeft(area.proportionOfWidth(0.5f));
+    auto right_top = area.removeFromTop(area.proportionOfHeight(0.33f));
+    envelopes->setBounds(right_top);
     // title_label.setBounds(0, 361, 136.5, 39);
     // created_by_label.setBounds(380.75, 361, 219.25, 39);
     look_and_feel.setFontSize(15.0f*sw);

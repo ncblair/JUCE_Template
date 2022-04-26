@@ -1,5 +1,6 @@
-#include <JuceHeader.h>
 #pragma once
+
+#include <JuceHeader.h>
 
 class LabeledKnobComponent : public  juce::Component {
   public:
@@ -10,25 +11,12 @@ class LabeledKnobComponent : public  juce::Component {
     //     knob.setTooltip(tooltip);
     //     label.setText (label_str, juce::dontSendNotification);
     // }
-    LabeledKnobComponent(juce::AudioProcessorValueTreeState& apvts, juce::String param_name, juce::String tooltip, juce::String label_str) {
-        addAndMakeVisible(knob);
-        knob.setRotaryParameters (M_PI * 5.0f / 4.0f, M_PI * 11.0f / 4.0f, true);
-        knob.setTooltip(tooltip);
-        knob_attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, param_name, knob);
-        addAndMakeVisible(label);
-        label.setText (label_str, juce::dontSendNotification);
-        label.setJustificationType(juce::Justification::centred);
-    // gain_label.setText ("Gain", juce::dontSendNotification);
-    // gain_label.attachToComponent (&gain_slider, false); // false sets to top, true sets to left
-    }
+    LabeledKnobComponent(juce::AudioProcessorValueTreeState& apvts, juce::String param_name, juce::String tooltip, juce::String label_str);
 
     // void paint (juce::Graphics& g) override {
     // }
 
-    void resized() override {
-        knob.setBounds(getLocalBounds());
-    }
-
+    void resized() override;
   private:
     juce::Slider knob{juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow};
     juce::Label label;

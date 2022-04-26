@@ -1,4 +1,5 @@
 #include "ADSR.h"
+#include "../plugin/PluginProcessor.h"
 
 
 ADSRModulator::ADSRModulator(juce::String attack, juce::String decay, juce::String sustain, juce::String release) {
@@ -8,7 +9,7 @@ ADSRModulator::ADSRModulator(juce::String attack, juce::String decay, juce::Stri
     rel_str = release;
 }
 
-void prepareToPlay(PluginProcessor* processor) {
+void ADSRModulator::prepareToPlay(PluginProcessor* processor) {
     params = &(processor->processor_parameters);
 }
 // void ADSRModulator::set(float a, float d, float s, float r) {
@@ -50,13 +51,12 @@ void prepareToPlay(PluginProcessor* processor) {
 // }
 
 
-float ADSRModulator::get(float ms, float release_time=std::numeric_limits<float>::max()) {
+float ADSRModulator::get(float ms, float release_time) {
     /*
     get position in envelope after ms milliseconds
 
     if the note has been released, ms is time since release
 
-    TODO: remove dependency on cur, take in ms_of_release, calculate cur, then calculate release
     */
     if (ms < release_time) {
         //ADS stages
@@ -79,11 +79,12 @@ float ADSRModulator::get(float ms, float release_time=std::numeric_limits<float>
     }
     else {
         auto ms_since_release = ms - release_time;
-        if (ms_since_release < (*params)[rel_str]);
+        if (ms_since_release < (*params)[rel_str]) {
             // RELEASE
             // get the value when of the envelope when it was released recursively
             // this will prevent jumps on release during attack stage
             return get(release_time) * (1.0f - ms_since_release / (*params)[rel_str]);
+        }
         else {
             // END
             return 0.0f;

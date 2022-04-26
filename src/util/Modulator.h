@@ -1,7 +1,7 @@
 #pragma once
 
-#include <JuceHeader.h>
-#include "../plugin/PluginProcessor.h"
+// forward declarations
+class PluginProcessor;
 
 class Modulator {
   public:

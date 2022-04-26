@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "Matrix.h"
 
 // Custom Parameters with flag for if it's automatable
 

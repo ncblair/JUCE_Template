@@ -1,12 +1,14 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "../audio/SynthVoice.h"
+#include "../util/Matrix.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor()
-     : apvts(*this, nullptr, "Parameters", createParameters()), 
-        matrix(PARAMETER_NAMES, &apvts, &modulators)
+     : apvts(*this, nullptr, "Parameters", createParameters())
+        // matrix(parameter_names, &apvts, &modulators)
 {
+    std::cout << "Processor Constructor " << NUM_VOICES << std::endl;
     synth.clearVoices();
     for (auto i = 0; i < NUM_VOICES; ++i) {
         synth.addVoice(new SynthVoice());
@@ -15,6 +17,10 @@ PluginProcessor::PluginProcessor()
 
     synth.enableLegacyMode();
     synth.setPitchbendTrackingMode(juce::MPEInstrument::allNotesOnChannel);
+
+    // create matrix here, after parameters and modulators have been initialized
+    createModulators();
+    matrix = std::make_unique<Matrix>(getParamNames(), &apvts, &modulators);
 
     // Attach Parameters to callback function
     // gain_param.attachToParameter(apvts.getParameter("GAIN_PARAM"));
@@ -35,17 +41,17 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // initialisation that you need..
 
     // add parameters
-    for (auto& param_name : PROCESSOR_PARAM_NAMES) {
+    for (auto& param_name : processor_param_names) {
         processor_parameters[param_name] = 0.0f;
     }
-    for (auto& param_name : SMOOTHED_PARAM_NAMES) {
+    for (auto& param_name : smoothed_param_names) {
         smoothed_parameters[param_name] = juce::SmoothedValue<float>();
-        smoothed_parameters[param_name].reset(sampleRate/(5*CONTROL_RATE_SAMPLES)); // smooth over 0.2 seconds
+        smoothed_parameters[param_name].reset(int(sampleRate/(5*CONTROL_RATE_SAMPLES))); // smooth over 0.2 seconds
     }
 
     // prepare modulators
-    for (auto& modulator : modulators) {
-        modulator.prepareToPlay(&processor_parameters);
+    for (auto& [m_name, modulator] : modulators) {
+        modulator->prepareToPlay(this);
     }
 
     // prepare synth voices
@@ -78,7 +84,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     while (samples_left != 0) {
         // get number of samples to compute this loop
         auto samples_this_time = std::min(samples_left, samples_to_next_control_update);
-
+        // std::cout << "SAMPS THIS TIME: " << samples_this_time << std::endl;
+        // std::cout << "SAMP LEFT: " << samples_left << std::endl;
         // render next block
         synth.renderNextBlock(buffer, midiMessages, numSamples - samples_left, samples_this_time);
 
@@ -134,31 +141,127 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new PluginProcessor();
 }
 
+juce::StringArray PluginProcessor::getParamNames() {
+    return juce::StringArray(
+        "LEVEL",
+        "SEMITONES",
+        "ADSR_1_ATTACK",
+        "ADSR_1_DECAY",
+        "ADSR_1_SUSTAIN",
+        "ADSR_1_RELEASE",
+        "ADSR_2_ATTACK",
+        "ADSR_2_DECAY",
+        "ADSR_2_SUSTAIN",
+        "ADSR_2_RELEASE",
+        "ADSR_3_ATTACK",
+        "ADSR_3_DECAY",
+        "ADSR_3_SUSTAIN",
+        "ADSR_3_RELEASE"
+    );
+}
+
 // Add parameters to apvts
 juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameters() {
-    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
+    std::cout << "Create Parameters " << std::endl;
+
+    // Parameters updated on the processor and smoothed at control rate
+    // smoothed_param_names;
+
+    // std::cout << "processorParamNames " << std::endl;
+
+    // APVTS PARAMETERS
+    auto parameter_names = getParamNames();
+
+    std::cout << "ParamNames " << std::endl;
+
+    //Parameter Ranges, low, high, grain, exp
+    auto parameter_ranges = juce::Array<juce::NormalisableRange<float>> (
+        // LEVEL
+        juce::NormalisableRange<float>(-60.0f, 6.0f, 0.0f, 1.0f),
+        // SEMITONES
+        juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f, 1.0f),
+        // ADSR_1_ATTACK
+        juce::NormalisableRange<float> (1.0f, 5000.0f, 0.0f, 0.75f),
+        // ADSR_1_DECAY
+        juce::NormalisableRange<float> (1.0f, 60000.0f, 0.0f, 0.3f),
+        // ADSR_1_SUSTAIN
+        juce::NormalisableRange<float> (0.0f, 1.0f, 0.0f, 1.0f),
+        // ADSR_1_RELEASE
+        juce::NormalisableRange<float> (1.00f, 10000.0f, 0.0f, 0.75f),
+        // ADSR_2_ATTACK
+        juce::NormalisableRange<float> (1.0f, 5000.0f, 0.0f, 0.75f),
+        // ADSR_2_DECAY
+        juce::NormalisableRange<float> (1.0f, 60000.0f, 0.0f, 0.3f),
+        // ADSR_2_SUSTAIN
+        juce::NormalisableRange<float> (0.0f, 1.0f, 0.0f, 1.0f),
+        // ADSR_2_RELEASE
+        juce::NormalisableRange<float> (1.00f, 10000.0f, 0.0f, 0.75f),
+        // ADSR_3_ATTACK
+        juce::NormalisableRange<float> (1.0f, 5000.0f, 0.0f, 0.75f),
+        // ADSR_3_DECAY
+        juce::NormalisableRange<float> (1.0f, 60000.0f, 0.0f, 0.3f),
+        // ADSR_3_SUSTAIN
+        juce::NormalisableRange<float> (0.0f, 1.0f, 0.0f, 1.0f),
+        // ADSR_3_RELEASE
+        juce::NormalisableRange<float> (1.00f, 10000.0f, 0.0f, 0.75f)
+    );
+
+    std::cout << "ParamRanges " << std::endl;
+
+    auto parameter_defaults = juce::Array<float> (
+        // LEVEL
+        -12.0f,
+        // SEMITONES
+        0.0f,
+        // ADSR_1_ATTACK
+        10.0f,
+        // ADSR_1_DECAY
+        1000.0f,
+        // ADSR_1_SUSTAIN
+        1.0f,
+        // ADSR_1_RELEASE
+        1000.0f,
+        // ADSR_2_ATTACK
+        10.0f,
+        // ADSR_2_DECAY
+        1000.0f,
+        // ADSR_2_SUSTAIN
+        1.0f,
+        // ADSR_2_RELEASE
+        1000.0f,
+        // ADSR_3_ATTACK
+        10.0f,
+        // ADSR_3_DECAY
+        1000.0f,
+        // ADSR_3_SUSTAIN
+        1.0f,
+        // ADSR_3_RELEASE
+        1000.0f
+    );
+
+    std::cout << "DEFINED PARAMETERS BEFORE ADDING TO TREE" << std::endl;
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
     //==============================================================================
     //-> ADD PARAMS
     //==============================================================================
-
-    for (int i = 0; i < PARAMETER_NAMES.size(); ++i) {
+    for (int i = 0; i < parameter_names.size(); ++i) {
         params.push_back(
             std::make_unique<juce::AudioParameterFloat>(
-                PARAMETER_NAMES[i],  // parameter ID
-                PARAMETER_NAMES[i],  // parameter name
-                PARAMETER_RANGES[i],  // range
-                PARAMETER_DEFAULTS[i],         // default value
+                parameter_names[i],  // parameter ID
+                parameter_names[i],  // parameter name
+                parameter_ranges[i],  // range
+                parameter_defaults[i],         // default value
                 "", // parameter label (description?)
                 juce::AudioProcessorParameter::Category::genericParameter,
                 [this, i](float value, int maximumStringLength) { // Float to String Precision 2 Digits
                     std::stringstream ss;
-                    ss << std::fixed << std::setprecision(2) << PARAMETER_RANGES[i].convertTo0to1(value);
+                    ss << std::fixed << std::setprecision(2) << value;
                     return juce::String(ss.str());
                 },
                 [this, i](juce::String text) {
-                    return PARAMETER_RANGES[i].convertFrom0to1(text.getFloatValue()); // Convert Back to Value
+                    return text.getFloatValue(); // Convert Back to Value
                 }
             )
         );
@@ -180,6 +283,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     return {params.begin(), params.end()};
 }
 
+void PluginProcessor::createModulators() {
+    std::cout << "CREATE MODULATORS" << std::endl;
+    modulators = std::map<juce::String, Modulator*>{
+        {"ADSR_1", new ADSRModulator("ADSR_1_ATTACK", "ADSR_1_DECAY", "ADSR_1_SUSTAIN", "ADSR_1_RELEASE")},
+        {"ADSR_2", new ADSRModulator("ADSR_2_ATTACK", "ADSR_2_DECAY", "ADSR_2_SUSTAIN", "ADSR_2_RELEASE")},
+        {"ADSR_3", new ADSRModulator("ADSR_3_ATTACK", "ADSR_3_DECAY", "ADSR_3_SUSTAIN", "ADSR_3_RELEASE")}
+    };
+    std::cout << "END MODULATOR CREATE" << std::endl;
+}
+
+float PluginProcessor::modulator_value_at(juce::String modulator_name, double ms_elapsed, double release_time) {
+    return modulators[modulator_name]->get(ms_elapsed, release_time);
+}
+
 // std::map<juce::String, Modulator>* PluginProcessor::createModulators() {
 //     return &modulators
 // }
@@ -188,8 +305,8 @@ void PluginProcessor::update_parameters() {
     // Updates the global processor parameters (doesn't worry about voice parameters)
 
     // first, get position of "global" envelope and update voice parameters
-    float ms_elapsed = std::numeric_limits<float>::max();
-    float last_release_time = std::numeric_limits<float>::max();
+    double ms_elapsed = std::numeric_limits<double>::max();
+    double last_release_time = std::numeric_limits<double>::max();
     bool all_released = true;
     bool any_note_on = false;
     for (int i = 0; i < synth.getNumVoices(); ++i) {
@@ -211,11 +328,11 @@ void PluginProcessor::update_parameters() {
     if (any_note_on) {
         for (auto& [param_name, param] : smoothed_parameters) {
             // parameters that are smoothed
-            param.setTargetValue(matrix.value_at(param_name, ms_elapsed, last_releast_time));
+            param.setTargetValue(matrix->value_at(param_name, ms_elapsed, last_release_time));
         }
         for (auto& [param_name, param] : processor_parameters) {
             // parameters that are just what the processor has
-            processor_parameters[param_name] = matrix.value_at(param_name, ms_elapsed, last_releast_time);
+            processor_parameters[param_name] = matrix->value_at(param_name, ms_elapsed, last_release_time);
         }
     }
 }

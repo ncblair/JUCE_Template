@@ -1,11 +1,17 @@
 #pragma once
 
-#include <BinaryData.h>
+//forward declarations
+class FooterComponent;
+class ADSRParentComponent;
+class LabeledKnobComponent;
+
+//includes
+// #include <BinaryData.h>
 #include "PluginProcessor.h"
 #include "../interface/CustomLookAndFeel.h"
-#include "../interface/FooterComponent.h"
-#include "../interface/ADSRComponent.h"
-// #include "bgfx/bgfx.h"
+// #include "../interface/FooterComponent.h"
+// #include "../interface/ADSRComponent.h"
+// #include "../interface/LabeledKnobComponent.h"
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor
