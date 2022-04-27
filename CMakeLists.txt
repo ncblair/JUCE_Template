@@ -79,7 +79,8 @@ target_sources(TEMPLATE
         src/interface/FooterComponent.cpp
         src/interface/LabeledKnobComponent.cpp
         src/interface/ADSRComponent.cpp
-        src/util/Matrix.cpp)
+        src/interface/ModulatorLabel.cpp
+        src/managers/matrix/Matrix.cpp)
 
 # use c++ 17
 target_compile_features(TEMPLATE PRIVATE cxx_std_17)

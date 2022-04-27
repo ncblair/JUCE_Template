@@ -4,7 +4,7 @@
 
 class FooterComponent : public  juce::Component {
   public:
-    FooterComponent(juce::AudioProcessorValueTreeState& apvts);
+    FooterComponent();
 
     void paint (juce::Graphics& g) override;
 

@@ -1,6 +1,6 @@
 #include "FooterComponent.h"
 
-FooterComponent::FooterComponent(juce::AudioProcessorValueTreeState& apvts) {
+FooterComponent::FooterComponent() {
     //mpe button
     // addAndMakeVisible(mpe_button);
     

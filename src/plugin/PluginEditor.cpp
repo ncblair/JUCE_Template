@@ -2,6 +2,7 @@
 #include "../interface/FooterComponent.h"
 #include "../interface/ADSRComponent.h"
 #include "../interface/LabeledKnobComponent.h"
+#include "../managers/matrix/Matrix.h"
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcessor& p)
@@ -12,32 +13,34 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     // editor's size to whatever you need it to be.
 
     // create components at top (so they are not null ptrs when we set bounds)
-    footer = std::make_unique<FooterComponent>(processorRef.apvts);
+    footer = std::make_unique<FooterComponent>();
     midi_keyboard = std::make_unique<MidiKeyboardComponent>(
                         processorRef.keyboard_state, 
                         juce::KeyboardComponentBase::Orientation::horizontalKeyboard
     );
+    auto env_ids = std::vector<int>{ADSR_1, ADSR_2, ADSR_3};
     envelopes = std::make_unique<ADSRParentComponent>(
-        processorRef.apvts, 
-        3 // number of envelope sub-components
+        processorRef.matrix.get(), 
+        env_ids // number of envelope sub-components
     );
 
     gain_knob = std::make_unique<LabeledKnobComponent>(
-        processorRef.apvts, // apvts
-        "LEVEL", // apvts param ID
+        processorRef.matrix.get(), // apvts
+        LEVEL, // apvts param ID
         "level (in decibels) of the synth voice", // Knob Tooltip
         "Level" // Knob Label
+    );
+
+    semitones_knob = std::make_unique<LabeledKnobComponent>(
+        processorRef.matrix.get(),
+        SEMITONES,
+        "Semitones pitch bend of the synth voice",
+        "Semitones"
     );
 
     setSize (600, 400);
     //look and feel
     setLookAndFeel(&look_and_feel);
-
-    //sliders
-    // addAndMakeVisible(gain_slider);
-    // gain_slider_attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, "GAIN", gain_slider);
-    // gain_slider.setRotaryParameters (M_PI * 5.0f / 4.0f, M_PI * 11.0f / 4.0f, true);
-    // gain_slider.setTooltip("Gain in Decibels Slider");
 
     // footer
     addAndMakeVisible(*footer);
@@ -50,18 +53,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 
     // knob
     addAndMakeVisible(*gain_knob);
+    addAndMakeVisible(*semitones_knob);
 
     // tooltip
     addAndMakeVisible(tooltip);
     tooltip.setMillisecondsBeforeTipAppears(0);
-
-    // // labels
-    // addAndMakeVisible(gain_label);
-    // gain_label.setJustificationType(juce::Justification::centred);
-    // // gain_label.setText ("Gain", juce::dontSendNotification);
-    // gain_label.attachToComponent (&gain_slider, false); // false sets to top, true sets to left
-
-
 
     // resizable window
     setResizable(true, true);
@@ -77,27 +73,7 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    // auto sw = getWidth() / 600.0;
-    // auto sh = getHeight() / 400.0;
     g.fillAll (juce::Colours::white);
-
-    // g.setColour (juce::Colours::black);
-    // // g.setFont (15.0f);
-
-    // g.drawImage(bg_img, 0, 0, getWidth(), 375*sh, 0, 0, bg_img.getWidth(), bg_img.getHeight());
-
-    // juce::Line<float> line1 (juce::Point<float> (0*sw, 375*sh),
-    //                         juce::Point<float> (600*sw, 375*sh));
-    
-    // juce::Line<float> line2 (juce::Point<float> (200*sw, 375*sh),
-    //                         juce::Point<float> (200*sw, 400*sh));
-    
-    // juce::Line<float> line3 (juce::Point<float> (400*sw, 375*sh),
-    //                         juce::Point<float> (400*sw, 400*sh));
- 
-    // g.drawLine (line1, 0.5f*sh);
-    // g.drawLine (line2, 0.5f*sw);
-    // g.drawLine (line3, 0.5f*sw);
 }
 
 void AudioPluginAudioProcessorEditor::resized()
@@ -110,13 +86,16 @@ void AudioPluginAudioProcessorEditor::resized()
     auto sw = getWidth() / 600.0;
     auto sh = getHeight() / 400.0;
     gain_knob->setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
+    semitones_knob->setBounds(120.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     midi_keyboard->setBounds(area.removeFromBottom(proportionOfHeight(0.1375f)));
     footer->setBounds(area.removeFromTop(proportionOfHeight(0.0625f)));
     auto left = area.removeFromLeft(area.proportionOfWidth(0.5f));
-    auto right_top = area.removeFromTop(area.proportionOfHeight(0.33f));
+    auto right_top = area.removeFromTop(area.proportionOfHeight(0.5f));
     envelopes->setBounds(right_top);
-    // title_label.setBounds(0, 361, 136.5, 39);
-    // created_by_label.setBounds(380.75, 361, 219.25, 39);
     look_and_feel.setFontSize(15.0f*sw);
 }
 
+
+void AudioPluginAudioProcessorEditor::mouseDown (const MouseEvent& e) {
+    std::cout << "MOUSE DOWN EDITOR" << std::endl;
+}

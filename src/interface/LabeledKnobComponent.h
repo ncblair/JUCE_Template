@@ -1,26 +1,27 @@
 #pragma once
 
+class Matrix;
+
 #include <JuceHeader.h>
 
-class LabeledKnobComponent : public  juce::Component {
+class LabeledKnobComponent : public juce::Component, public juce::DragAndDropTarget {
   public:
-    // LabeledKnobComponent(juce::String tooltip, juce::String label_str) {
-    //     addAndMakeVisible(knob);
-    //     addAndMakeVisible(label);
-    //     knob.setRotaryParameters (M_PI * 5.0f / 4.0f, M_PI * 11.0f / 4.0f, true);
-    //     knob.setTooltip(tooltip);
-    //     label.setText (label_str, juce::dontSendNotification);
-    // }
-    LabeledKnobComponent(juce::AudioProcessorValueTreeState& apvts, juce::String param_name, juce::String tooltip, juce::String label_str);
-
+    LabeledKnobComponent(Matrix* m, int p_id, juce::String tooltip, juce::String label_str);
     // void paint (juce::Graphics& g) override {
     // }
 
     void resized() override;
+
+    // Drag and Drop Methods
+    bool isInterestedInDragSource (const SourceDetails &dragSourceDetails) override;
+    void itemDropped (const SourceDetails &dragSourceDetails) override;
+    void mouseDown(const MouseEvent& e) override;
   private:
     juce::Slider knob{juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow};
     juce::Label label;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> knob_attachment;
+    Matrix* matrix;
+    int param_id;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabeledKnobComponent)
 };

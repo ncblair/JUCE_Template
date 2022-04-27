@@ -6,15 +6,11 @@ class ADSRParentComponent;
 class LabeledKnobComponent;
 
 //includes
-// #include <BinaryData.h>
 #include "PluginProcessor.h"
 #include "../interface/CustomLookAndFeel.h"
-// #include "../interface/FooterComponent.h"
-// #include "../interface/ADSRComponent.h"
-// #include "../interface/LabeledKnobComponent.h"
 
 //==============================================================================
-class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor
+class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::DragAndDropContainer
 {
 public:
     explicit AudioPluginAudioProcessorEditor (PluginProcessor&);
@@ -23,6 +19,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    void mouseDown (const MouseEvent& e) override;
 
 private:
     CustomLookAndFeel look_and_feel;
@@ -31,25 +28,13 @@ private:
     std::unique_ptr<juce::MidiKeyboardComponent> midi_keyboard;
     std::unique_ptr<ADSRParentComponent> envelopes;
     std::unique_ptr<LabeledKnobComponent> gain_knob;
+    std::unique_ptr<LabeledKnobComponent> semitones_knob;
 
     juce::TooltipWindow tooltip{ this };
-    
-    // juce::Component midi_keyboard{"MidiKeyboard"};
-    // juce::Component panel_1{"Panel1"};
-    // juce::Component panel_envelope{"PanelEnvelope"};
-
-    // juce::Slider gain_slider{juce::Slider::Rotary, juce::Slider::TextEntryBoxPosition::TextBoxBelow};
-    // juce::Label gain_label{"GainLabel", "Gain"};
-    // std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gain_slider_attachment;
-
-    
 
     // juce::Label mpe_button_label{"Enable MPE", "enable mpe"};
     // juce::ToggleButton mpe_button;
     // std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> mpe_button_attachment;
-
-    // juce::Label title_label{"Title Label", "template synthesizer"};
-    // juce::Label created_by_label{"Created By Label", "created by @nthnblair"};
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

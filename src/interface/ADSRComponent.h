@@ -1,12 +1,15 @@
 #pragma once
 
 class LabeledKnobComponent;
+class ModulatorLabel;
+class Matrix;
 
 #include <JuceHeader.h>
 
 class ADSRComponent : public  juce::Component {
   public:
-    ADSRComponent(juce::AudioProcessorValueTreeState& apvts, int index);
+    ADSRComponent(Matrix* matrix, int mod_id);
+    // ~ADSRComponent() override;
     void paint (juce::Graphics& g) override;
     void resized() override;
 
@@ -22,12 +25,16 @@ class ADSRComponent : public  juce::Component {
 
 class ADSRParentComponent: public juce::Component {
   public:
-    ADSRParentComponent(juce::AudioProcessorValueTreeState& apvts, int number_envelopes);
+    ADSRParentComponent(Matrix* matrix, std::vector<int>& mod_ids);
+    ~ADSRParentComponent() override;
     void resized() override;
+    void mouseDown (const MouseEvent& e) override;
   private:
     std::vector<std::unique_ptr<ADSRComponent>> envelopes;
+    std::vector<std::unique_ptr<ModulatorLabel>> modulator_labels;
     int num_envelopes;
     int visible_envelope{0};
+    juce::MouseListener active_envelope_listener;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ADSRParentComponent)
 };
