@@ -19,6 +19,7 @@ PluginProcessor::PluginProcessor()
     synth.setPitchbendTrackingMode(juce::MPEInstrument::allNotesOnChannel);
 
     matrix.reset(new Matrix(this));
+    // property_manager.reset(new PropertyManager(this));
 }
 
 PluginProcessor::~PluginProcessor()
@@ -95,7 +96,7 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
-    auto state = matrix->getValueTree()->copyState();
+    auto state = matrix->getParamTree()->copyState();
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
 }
@@ -107,8 +108,8 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
  
     if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName (matrix->getValueTree()->state.getType()))
-            matrix->getValueTree()->replaceState (juce::ValueTree::fromXml (*xmlState));
+        if (xmlState->hasTagName (matrix->getParamTree()->state.getType()))
+            matrix->getParamTree()->replaceState (juce::ValueTree::fromXml (*xmlState));
 }
 
 //==============================================================================
@@ -151,7 +152,23 @@ void PluginProcessor::update_parameters() {
                 }
             }
         }
+    }
+    // updates the global processor parameters
+    update_MPE_enable();
+}
 
-        // updates the global processor parameters
+void PluginProcessor::update_MPE_enable() {
+    if (is_mpe_enabled != bool(matrix->propertyValue(ENABLE_MPE))) {
+        is_mpe_enabled = bool(matrix->propertyValue(ENABLE_MPE));
+        if (is_mpe_enabled) {
+            zone_layout.clearAllZones();
+            zone_layout.setLowerZone(15, 48, 2);
+            synth.setZoneLayout(zone_layout);
+            synth.setPitchbendTrackingMode(MPEInstrument::lastNotePlayedOnChannel);
+        }
+        else {
+            synth.enableLegacyMode();
+            synth.setPitchbendTrackingMode(juce::MPEInstrument::allNotesOnChannel);
+        }
     }
 }

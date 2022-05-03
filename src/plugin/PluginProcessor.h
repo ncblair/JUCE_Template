@@ -1,6 +1,7 @@
 #pragma once
 
 class Matrix;
+class PropertyManager;
 
 #include "PluginProcessorBase.h"
 #include "../audio/ADSR.h"
@@ -35,7 +36,7 @@ public:
     //==============================================================================
     juce::MidiKeyboardState keyboard_state; // create MidiKeyboardState for MIDI Visualization and Playback
     std::unique_ptr<Matrix> matrix;
-    // std::unique_ptr<juce::UndoManager> undo_manager;
+    // std::unique_ptr<PropertyManager> property_manager;
     // juce::FileLogger logger;
 
   private:
@@ -50,11 +51,13 @@ public:
     //==============================================================================
     juce::MPESynthesiser synth;
     juce::MPEZoneLayout zone_layout;
+    bool is_mpe_enabled{false};
 
     //==============================================================================
     // Parameters
     //==============================================================================
     void update_parameters();
+    void update_MPE_enable();
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)

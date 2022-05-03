@@ -10,7 +10,7 @@ class LabeledKnobComponent;
 #include "../interface/CustomLookAndFeel.h"
 
 //==============================================================================
-class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::DragAndDropContainer
+class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::DragAndDropContainer, public juce::Timer
 {
 public:
     explicit AudioPluginAudioProcessorEditor (PluginProcessor&);
@@ -20,6 +20,7 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     void mouseDown (const MouseEvent& e) override;
+    void timerCallback() override;
 
 private:
     CustomLookAndFeel look_and_feel;

@@ -9,11 +9,15 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     : AudioProcessorEditor (&p), processorRef (p)
 {
     std::cout << "EDITOR CONSTRUCTOR" << std::endl;
+    startTimerHz(5);
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
     // create components at top (so they are not null ptrs when we set bounds)
-    footer = std::make_unique<FooterComponent>();
+    footer = std::make_unique<FooterComponent>(
+        processorRef.matrix.get(),
+        processorRef.matrix->getUndoManager()
+    );
     midi_keyboard = std::make_unique<MidiKeyboardComponent>(
                         processorRef.keyboard_state, 
                         juce::KeyboardComponentBase::Orientation::horizontalKeyboard
@@ -98,4 +102,10 @@ void AudioPluginAudioProcessorEditor::resized()
 
 void AudioPluginAudioProcessorEditor::mouseDown (const MouseEvent& e) {
     std::cout << "MOUSE DOWN EDITOR" << std::endl;
+}
+
+void AudioPluginAudioProcessorEditor::timerCallback() {
+    if (!isMouseButtonDownAnywhere()) {
+        processorRef.matrix->getUndoManager()->beginNewTransaction();
+    }
 }

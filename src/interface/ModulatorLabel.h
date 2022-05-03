@@ -11,6 +11,7 @@ class ModulatorLabel : public  juce::Component {
     void paint (juce::Graphics& g) override;
     void resized() override;
     int getModID();
+    void setSelected(bool is_selected);
 
     void mouseDown (const MouseEvent& e) override;
     void mouseDrag (const MouseEvent& e) override;
@@ -18,6 +19,7 @@ class ModulatorLabel : public  juce::Component {
   private:
     juce::Label label;
     int mod_id;
+    bool selected;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ModulatorLabel)
 };

@@ -34,7 +34,7 @@ class ADSRParentComponent: public juce::Component {
     std::vector<std::unique_ptr<ModulatorLabel>> modulator_labels;
     int num_envelopes;
     int visible_envelope{0};
-    juce::MouseListener active_envelope_listener;
+    // juce::MouseListener active_envelope_listener;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ADSRParentComponent)
 };

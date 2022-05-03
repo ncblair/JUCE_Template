@@ -1,23 +1,31 @@
 #include "FooterComponent.h"
+#include "../managers/matrix/Matrix.h"
 
-FooterComponent::FooterComponent() {
+FooterComponent::FooterComponent(Matrix* m, juce::UndoManager* undoManager) : undoButton("undo"), redoButton("redo") {
+    // undo redo
+    addAndMakeVisible (undoButton);
+    addAndMakeVisible (redoButton);
+    undo_manager = undoManager;
+    undoButton.onClick = [this] { undo_manager->undo(); };
+    redoButton.onClick = [this] { undo_manager->redo(); };
+
     //mpe button
-    // addAndMakeVisible(mpe_button);
+    addAndMakeVisible(mpe_button);
     
     // set colours of mpe button
-    // mpe_button.setColour(juce::ToggleButton::ColourIds::tickColourId, juce::Colours::black);
-    // mpe_button.setColour(juce::ToggleButton::ColourIds::tickDisabledColourId, juce::Colours::black);
-    // mpe_button.setTooltip("Enable Midi Polyphonic Expression (MPE)");
+    mpe_button.setColour(juce::ToggleButton::ColourIds::tickColourId, juce::Colours::black);
+    mpe_button.setColour(juce::ToggleButton::ColourIds::tickDisabledColourId, juce::Colours::black);
+    mpe_button.setTooltip("Enable Midi Polyphonic Expression (MPE)");
     // //attach mpe button
-    // mpe_button_attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, "MPE_PARAM", mpe_button);
+    mpe_button_attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(*(m->getPropertyTree()), PROPERTY_NAMES[ENABLE_MPE], mpe_button);
     
     //labels
     addAndMakeVisible(title_label);
     title_label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(created_by_label);
     created_by_label.setJustificationType(juce::Justification::centred);
-    // addAndMakeVisible(mpe_button_label);
-    // mpe_button_label.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(mpe_button_label);
+    mpe_button_label.setJustificationType(juce::Justification::centred);
 }
 
 void FooterComponent::paint (juce::Graphics& g) {
@@ -26,11 +34,11 @@ void FooterComponent::paint (juce::Graphics& g) {
     juce::Line<float> line1 (juce::Point<float> (0, 0),
                             juce::Point<float> (getWidth(), 0));
     
-    juce::Line<float> line2 (juce::Point<float> (proportionOfWidth(0.3333333f), 0),
-                            juce::Point<float> (proportionOfWidth(0.3333333f), getHeight()));
+    juce::Line<float> line2 (juce::Point<float> (proportionOfWidth(0.46666666666f), 0),
+                            juce::Point<float> (proportionOfWidth(0.46666666666f), getHeight()));
     
-    juce::Line<float> line3 (juce::Point<float> (proportionOfWidth(0.6666667f), 0),
-                            juce::Point<float> (proportionOfWidth(0.6666667f), getHeight()));
+    juce::Line<float> line3 (juce::Point<float> (proportionOfWidth(0.73333333333f), 0),
+                            juce::Point<float> (proportionOfWidth(0.73333333333f), getHeight()));
 
     g.drawLine (line1, 1.0);
     g.drawLine (line2, 1.0);
@@ -38,8 +46,10 @@ void FooterComponent::paint (juce::Graphics& g) {
 }
 
 void FooterComponent::resized() {
-    title_label.setBoundsRelative(0.0f, 0.0f, 0.3333333f, 1.0f);
-    created_by_label.setBoundsRelative(0.6666667f, 0.0f, 0.3333333f, 1.0f);
-    // mpe_button_label.setBoundsRelative(0.3666666f, 0.0f, 0.1933333f, 1.0f);
-    // mpe_button.setBounds(proportionOfWidth(0.56f), 0, 21, getHeight());
+    undoButton.setBoundsRelative(0.0f, 0.0f, 0.1, 1.0f);
+    redoButton.setBoundsRelative(0.1f, 0.0f, 0.1, 1.0f);
+    title_label.setBoundsRelative(0.2f, 0.0f, 0.26666666666f, 1.0f);
+    created_by_label.setBoundsRelative(0.73333333333f, 0.0f, 0.26666666666f, 1.0f);
+    mpe_button_label.setBoundsRelative(0.4933333333f, 0.0f, 0.15333333f, 1.0f);
+    mpe_button.setBounds(proportionOfWidth(0.648f), 0, 21, getHeight());
 }

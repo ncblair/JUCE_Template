@@ -2,21 +2,42 @@
 
 #include <JuceHeader.h>
 
+template<typename T>
+struct Property : private juce::ValueTree::Listener
+                     private juce::Timer
+{
+    Property(const juce::Identifier& property_name)
+    {
+        proxy.addListener (this);
+        // startTimerHz (20);
+    }
+
+    float proxy;
+    std::atomic<T> value;
+
+    void timerCallback() override { proxy = value.load(); }
+    void valueTreePropertyChanged (ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override{
+        if (property == property_name)
+            value.store(treeWhosePropertyHasChanged.getProperty (property_name));
+    }
+    // void valueChanged (juce::Value& v) override { value.store (proxy.getValue()); }
+};
+
 // Custom Parameters with flag for if it's automatable
 
-class BoolParameter : public juce::AudioParameterBool {
-  public:
-    bool automatable;
-    BoolParameter(const String &parameterID, const String &parameterName, bool defaultValue, bool is_automatable=true)
-        : juce::AudioParameterBool(parameterID, parameterName, defaultValue){
-        // calls parent constructor
-        automatable = is_automatable;
-    }
+// class BoolParameter : public juce::AudioParameterBool {
+//   public:
+//     bool automatable;
+//     BoolParameter(const String &parameterID, const String &parameterName, bool defaultValue, bool is_automatable=true)
+//         : juce::AudioParameterBool(parameterID, parameterName, defaultValue){
+//         // calls parent constructor
+//         automatable = is_automatable;
+//     }
 
-    bool isAutomatable() const override {
-        return automatable;
-    }
-};
+//     bool isAutomatable() const override {
+//         return automatable;
+//     }
+// };
 
 // class ModulatedFloatParam {
 //   public:

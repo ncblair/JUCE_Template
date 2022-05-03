@@ -5,7 +5,6 @@
 
 
 ADSRComponent::ADSRComponent(Matrix* matrix, int mod_id) {
-    // auto& apvts = *(matrix->getValueTree());
 
     auto idx = std::to_string(mod_id);
     auto atk_param_id = MODULATOR_PARAMS[mod_id][0];
@@ -71,8 +70,9 @@ ADSRParentComponent::ADSRParentComponent(Matrix* matrix, std::vector<int>& mod_i
         modulator_labels[i]->addMouseListener(this, true);
     }
     envelopes[visible_envelope]->setVisible(true);
+    modulator_labels[visible_envelope]->setSelected(true);
 
-    addMouseListener(&active_envelope_listener, true);
+    // addMouseListener(&active_envelope_listener, true);
 }
 
 ADSRParentComponent::~ADSRParentComponent() {
@@ -94,7 +94,9 @@ void ADSRParentComponent::resized() {
 void ADSRParentComponent::mouseDown (const MouseEvent& e) {
     if (auto comp = dynamic_cast<ModulatorLabel*>(e.eventComponent)) {
         envelopes[visible_envelope]->setVisible(false);
+        modulator_labels[visible_envelope]->setSelected(false);
         visible_envelope = comp->getModID();
         envelopes[visible_envelope]->setVisible(true);
+        modulator_labels[visible_envelope]->setSelected(true);
     }
 }
