@@ -10,8 +10,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 {
     std::cout << "EDITOR CONSTRUCTOR" << std::endl;
     startTimerHz(5);
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
 
     // create components at top (so they are not null ptrs when we set bounds)
     footer = std::make_unique<FooterComponent>(
@@ -42,7 +40,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
         "Semitones"
     );
 
-    setSize (600, 400);
+    setSize (900, 700);
+
     //look and feel
     setLookAndFeel(&look_and_feel);
 
@@ -71,6 +70,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -87,13 +87,13 @@ void AudioPluginAudioProcessorEditor::resized()
     auto area = getLocalBounds();
     //bad encapsulation but: remove tooltip area here AND in CustomLookAndFeel
     area.removeFromBottom(proportionOfHeight(look_and_feel.tooltip_height));
-    auto sw = getWidth() / 600.0;
-    auto sh = getHeight() / 400.0;
+    auto sw = getWidth() / 900.0;
+    auto sh = getHeight() / 700.0;
     gain_knob->setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     semitones_knob->setBounds(120.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     midi_keyboard->setBounds(area.removeFromBottom(proportionOfHeight(0.1375f)));
     footer->setBounds(area.removeFromTop(proportionOfHeight(0.0625f)));
-    auto left = area.removeFromLeft(area.proportionOfWidth(0.5f));
+    auto left = area.removeFromLeft(area.proportionOfWidth(0.6f));
     auto right_top = area.removeFromTop(area.proportionOfHeight(0.5f));
     envelopes->setBounds(right_top);
     look_and_feel.setFontSize(15.0f*sw);

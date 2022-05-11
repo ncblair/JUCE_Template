@@ -124,11 +124,11 @@ void PluginProcessor::update_parameters() {
     double ms_elapsed = std::numeric_limits<double>::max();
     double last_release_time = std::numeric_limits<double>::max();
     bool all_released = true;
-    bool any_note_on = false;
+    // bool any_note_on = false;
     for (int i = 0; i < synth.getNumVoices(); ++i) {
         if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i))) {
             if (voice->isActive()) {
-                any_note_on = true;
+                // any_note_on = true;
                 ms_elapsed = std::min(ms_elapsed, voice->getMsElapsed());
                 if (voice->isPlayingButReleased()) {
                     last_release_time = std::min(last_release_time, voice->getReleaseTime());
@@ -140,19 +140,18 @@ void PluginProcessor::update_parameters() {
         }
     }
 
-    if (any_note_on) {
-        // updates the parameters associated with the modulators
-        matrix->update_modulator_parameters(ms_elapsed, last_release_time);
-        
-        // updates the parameters associated with active voices
-        for (int i = 0; i < synth.getNumVoices(); ++i) {
-            if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i))) {
-                if (voice->isActive()) {
-                    voice->update_parameters();
-                }
+    // updates the parameters associated with the modulators
+    matrix->update_modulator_parameters(ms_elapsed, last_release_time);
+    
+    // updates the parameters associated with active voices
+    for (int i = 0; i < synth.getNumVoices(); ++i) {
+        if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i))) {
+            if (voice->isActive()) {
+                voice->update_parameters();
             }
         }
     }
+
     // updates the global processor parameters
     update_MPE_enable();
 }

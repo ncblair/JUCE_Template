@@ -22,6 +22,7 @@ class LabeledKnobComponent : public juce::Component, public juce::DragAndDropTar
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> knob_attachment;
     Matrix* matrix;
     int param_id;
+    juce::PopupMenu right_click_menu;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabeledKnobComponent)
 };

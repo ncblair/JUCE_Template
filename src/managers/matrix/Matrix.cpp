@@ -114,9 +114,17 @@ juce::NormalisableRange<float> Matrix::paramRange(int param_id) {
     return apvts_ptr->getParameterRange(PARAMETER_NAMES[param_id]);
 }
 
+Modulator* Matrix::getModulator(int mod_id) {
+    return modulators[mod_id].get();
+}
+
+juce::ValueTree Matrix::getModulators(int param_id) {
+    return matrix.getChildWithName(PARAMETER_NAMES[param_id]);
+}
+
 float Matrix::modulatorValue(int mod_id, double ms_elapsed, double release_time) {
     // returns the current modulator value after a ms_elapsed with release_time
-    return modulators[mod_id]->get(ms_elapsed, release_time);
+    return modulators[mod_id]->get(ms_elapsed, release_time); 
 }
 
 float Matrix::modulatedParamValue(int param_id, double ms_elapsed, double release_time) {
@@ -177,14 +185,10 @@ void Matrix::connect(int mod_id, int param_id, float depth) {
 }
 
 void Matrix::disconnect(int mod_id, int param_id) {
+    std::cout << "DISCONNECT " << MODULATOR_NAMES[mod_id] << " FROM " << PARAMETER_NAMES[param_id] << std::endl;
     // TODO: Do this on the UI Thread and MAKE THREAD SAFE
-    // auto param_modulators = matrix[param_id];
-    // for (int i = 0; i < param_modulators.size(); ++i) {
-    //     auto mod = param_modulators[i];
-    //     if (mod.mod_id == mod_id) {
-    //         param_modulators.erase(param_modulators.begin() + i);
-    //     }
-    // }
+    juce::ValueTree param_modulators = matrix.getChildWithName(PARAMETER_NAMES[param_id]);
+    param_modulators.removeChild(param_modulators.getChildWithProperty("MOD_ID", mod_id), &undo_manager);
 }
 
 juce::AudioProcessorValueTreeState* Matrix::getParamTree(){

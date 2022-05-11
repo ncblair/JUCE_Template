@@ -51,6 +51,7 @@ juce_add_plugin(TEMPLATE
     COPY_PLUGIN_AFTER_BUILD TRUE        # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Nthn               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE N005                            # A unique four-character plugin id with exactly one upper-case character
+    HARDENED_RUNTIME_ENABLED TRUE
                                                 # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
     FORMATS AU VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "Template")        # The name of the final executable, which can differ from the target name
@@ -81,6 +82,7 @@ target_sources(TEMPLATE
         src/interface/LabeledKnobComponent.cpp
         src/interface/ADSRComponent.cpp
         src/interface/ModulatorLabel.cpp
+        src/interface/ModulatorViewer.cpp
         src/managers/matrix/Matrix.cpp)
 
 # use c++ 17

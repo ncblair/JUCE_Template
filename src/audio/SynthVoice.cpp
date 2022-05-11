@@ -125,4 +125,12 @@ void SynthVoice::update_parameters() {
     }
     // gain is taken directly from env 1 value, not an apvts parameter
     gain.setTargetValue(matrix->modulatorValue(ADSR_1, ms_elapsed, release_time));
+    // auto adsr_lvl = matrix->modulatorValue(ADSR_1, ms_elapsed, release_time);
+    // if (adsr_lvl == 0.0f) {
+    //     gain.setTargetValue(0.0f);
+    // }
+    // else {
+    //     gain.setTargetValue(juce::Decibels::decibelsToGain(60.0f*adsr_lvl - 60.0f));
+    // }
+    
 }

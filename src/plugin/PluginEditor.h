@@ -33,10 +33,6 @@ private:
 
     juce::TooltipWindow tooltip{ this };
 
-    // juce::Label mpe_button_label{"Enable MPE", "enable mpe"};
-    // juce::ToggleButton mpe_button;
-    // std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> mpe_button_attachment;
-    
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     PluginProcessor& processorRef;

@@ -20,6 +20,8 @@ class Matrix {
     ~Matrix();
     float paramValue(int param_id);
     juce::NormalisableRange<float> paramRange(int param_id);
+    Modulator* getModulator(int mod_id);
+    juce::ValueTree getModulators(int param_id);
     float modulatorValue(int mod_id, double ms_elapsed, double release_time=std::numeric_limits<double>::max());
     float modulatedParamValue(int param_id, double ms_elapsed, double release_time=std::numeric_limits<double>::max());
     juce::AudioProcessorValueTreeState* getParamTree();
