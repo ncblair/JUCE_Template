@@ -2,6 +2,8 @@
 #include "../interface/FooterComponent.h"
 #include "../interface/ADSRComponent.h"
 #include "../interface/LabeledKnobComponent.h"
+#include "../interface/TooltipComponent.h"
+#include "../interface/PopupParameterComponent.h"
 #include "../managers/matrix/Matrix.h"
 
 //==============================================================================
@@ -30,15 +32,20 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
         processorRef.matrix.get(), // apvts
         LEVEL, // apvts param ID
         "level (in decibels) of the synth voice", // Knob Tooltip
-        "Level" // Knob Label
+        PARAMETER_NAMES[LEVEL] // Knob Label
     );
 
     semitones_knob = std::make_unique<LabeledKnobComponent>(
         processorRef.matrix.get(),
         SEMITONES,
         "Semitones pitch bend of the synth voice",
-        "Semitones"
+        PARAMETER_NAMES[SEMITONES]
     );
+
+    knob_popup = std::make_unique<PopupParameterComponent>();
+
+    tooltip = std::make_unique<TooltipComponent>();
+    
 
     setSize (900, 700);
 
@@ -58,14 +65,19 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     addAndMakeVisible(*gain_knob);
     addAndMakeVisible(*semitones_knob);
 
+    // knob popup
+    addAndMakeVisible(*knob_popup);
+
     // tooltip
-    addAndMakeVisible(tooltip);
-    tooltip.setMillisecondsBeforeTipAppears(0);
+    addAndMakeVisible(*tooltip);
+
+    
+    // tooltip.setMillisecondsBeforeTipAppears(0);
 
     // resizable window
     setResizable(true, true);
-    setResizeLimits(510, 340, 1005, 670);
-    getConstrainer()->setFixedAspectRatio(1.5);
+    setResizeLimits(450, 350, 1350, 1050);
+    getConstrainer()->setFixedAspectRatio(1.2857142857);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -86,9 +98,11 @@ void AudioPluginAudioProcessorEditor::resized()
     // subcomponents in your editor..
     auto area = getLocalBounds();
     //bad encapsulation but: remove tooltip area here AND in CustomLookAndFeel
-    area.removeFromBottom(proportionOfHeight(look_and_feel.tooltip_height));
+    
     auto sw = getWidth() / 900.0;
     auto sh = getHeight() / 700.0;
+    tooltip->setBounds(area.removeFromBottom(proportionOfHeight(0.05)));
+    // knob_popup->setBounds(area.removeFromBottom(proportionOfHeight(0.05)));
     gain_knob->setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     semitones_knob->setBounds(120.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
     midi_keyboard->setBounds(area.removeFromBottom(proportionOfHeight(0.1375f)));
@@ -96,7 +110,7 @@ void AudioPluginAudioProcessorEditor::resized()
     auto left = area.removeFromLeft(area.proportionOfWidth(0.6f));
     auto right_top = area.removeFromTop(area.proportionOfHeight(0.5f));
     envelopes->setBounds(right_top);
-    look_and_feel.setFontSize(15.0f*sw);
+    // look_and_feel.setFontSize(15.0f*sw);
 }
 
 

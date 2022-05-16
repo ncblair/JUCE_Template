@@ -4,6 +4,7 @@ CustomLookAndFeel::CustomLookAndFeel() {
     setColour(juce::TooltipWindow::backgroundColourId, juce::Colours::white);
     setColour(juce::TooltipWindow::textColourId, juce::Colours::black);
     setColour(juce::TooltipWindow::outlineColourId, juce::Colours::transparentWhite);
+    LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface(getTypefaceForFont(font));
 }
 
 //https://docs.juce.com/master/tutorial_look_and_feel_customisation.html
@@ -42,7 +43,7 @@ void CustomLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label) {
     // const Font font (getLabelFont (label));
 
     g.setColour (juce::Colours::black.withMultipliedAlpha(alpha));
-    g.setFont (font);
+    // g.setFont (font);
 
     auto textArea = getLabelBorderSize (label).subtractedFrom (label.getLocalBounds());
     g.drawFittedText (label.getText(), textArea, label.getJustificationType(),
@@ -50,9 +51,9 @@ void CustomLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label) {
                         label.getMinimumHorizontalScale());
 }
 
-void CustomLookAndFeel::setFontSize(float fontSize) {
-    font.setHeight(fontSize);
-}
+// void CustomLookAndFeel::setFontSize(float fontSize) {
+//     font.setHeight(fontSize);
+// }
 
 juce::Rectangle<int> CustomLookAndFeel::getTooltipBounds(const String& tipText, juce::Point<int> screenPos, juce::Rectangle<int> parentArea) {
     parentArea.removeFromLeft(parentArea.proportionOfWidth(0.02f));

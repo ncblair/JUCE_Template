@@ -4,6 +4,8 @@
 class FooterComponent;
 class ADSRParentComponent;
 class LabeledKnobComponent;
+class TooltipComponent;
+class PopupParameterComponent;
 
 //includes
 #include "PluginProcessor.h"
@@ -30,8 +32,10 @@ private:
     std::unique_ptr<ADSRParentComponent> envelopes;
     std::unique_ptr<LabeledKnobComponent> gain_knob;
     std::unique_ptr<LabeledKnobComponent> semitones_knob;
-
-    juce::TooltipWindow tooltip{ this };
+    std::unique_ptr<TooltipComponent> tooltip;
+    std::unique_ptr<PopupParameterComponent> knob_popup;
+    // juce::TooltipWindow tooltip{ this };
+    
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

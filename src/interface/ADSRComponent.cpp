@@ -35,8 +35,7 @@ ADSRComponent::ADSRComponent(Matrix* matrix, int mod_id) {
     addAndMakeVisible(*release_knob);
 
     envelope_viewer = std::make_unique<ModulatorViewer>(matrix, mod_id);
-    addAndMakeVisible(*envelope_viewer);
-    
+    addAndMakeVisible(*envelope_viewer);    
 }
 
 // ADSRComponent::~ADSRComponent() {
@@ -44,7 +43,7 @@ ADSRComponent::ADSRComponent(Matrix* matrix, int mod_id) {
 // }
 
 void ADSRComponent::paint (juce::Graphics& g) {
-    g.fillAll (juce::Colours::blue);
+    g.fillAll (juce::Colours::skyblue);
 }
 
 void ADSRComponent::resized() {

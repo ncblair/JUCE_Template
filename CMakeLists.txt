@@ -83,6 +83,8 @@ target_sources(TEMPLATE
         src/interface/ADSRComponent.cpp
         src/interface/ModulatorLabel.cpp
         src/interface/ModulatorViewer.cpp
+        src/interface/TooltipComponent.cpp
+        src/interface/PopupParameterComponent.cpp
         src/managers/matrix/Matrix.cpp)
 
 # use c++ 17

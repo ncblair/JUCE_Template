@@ -16,9 +16,14 @@ class LabeledKnobComponent : public juce::Component, public juce::DragAndDropTar
     bool isInterestedInDragSource (const SourceDetails &dragSourceDetails) override;
     void itemDropped (const SourceDetails &dragSourceDetails) override;
     void mouseDown(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
   private:
-    juce::Slider knob{juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxBelow};
+    juce::Slider knob{juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox};
     juce::Label label;
+
+    // juce::Label value_popup;
+    // std::unique_ptr<juce::CallOutBox> value_popup_box;
+
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> knob_attachment;
     Matrix* matrix;
     int param_id;

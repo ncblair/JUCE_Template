@@ -6,6 +6,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
   private: 
     juce::Font font{juce::Typeface::createSystemTypefaceFor(BinaryData::AnekTamilRegular_ttf,
                                                            BinaryData::AnekTamilRegular_ttfSize)};
+    
   public:
     CustomLookAndFeel();
 
@@ -14,7 +15,8 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 
     void drawLabel (juce::Graphics& g, juce::Label& label) override;
 
-    void setFontSize(float fontSize);
+    // void setFontSize(float fontSize);
+
 
     //tooltip
     float tooltip_height = 0.05f; // percent of total height
