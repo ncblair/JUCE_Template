@@ -34,9 +34,6 @@ void PopupParameterComponent::timerCallback() {
         setVisible(true);
         if (current_component == nullptr) {
             current_component = mouseSource.getComponentUnderMouse();
-
-            // setSize(100, 20)
-            // setTopLeftPosition(current_component->getScreenX(), current_component->getScreenY() + current_component->getHeight());  
         }
         const auto newString = current_component != nullptr ? getStringFor (*current_component) : juce::String();
         parameter_text.setText(newString, juce::dontSendNotification);
@@ -49,11 +46,6 @@ void PopupParameterComponent::timerCallback() {
         auto popup_y = component_bounds.getY() + component_bounds.getHeight() + popup_height;
 
         setBounds(popup_x, popup_y, popup_width, popup_height);
-
-        
-        // auto font = juce::Label;
-        // setSize(, );
-        // setSize(100, 20);
     }
     else {
         current_component = nullptr;

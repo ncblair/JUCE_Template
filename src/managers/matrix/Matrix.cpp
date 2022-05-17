@@ -213,3 +213,8 @@ float Matrix::propertyValue(int property_id) {
 juce::UndoManager* Matrix::getUndoManager() {
     return &undo_manager;
 }
+
+void Matrix::reload_state() {
+    matrix = apvts_ptr->state.getChildWithName("MATRIX"); //matrix
+    property_tree_ptr->replaceState(apvts_ptr->state.getChildWithName("PROPERTIES")); //properties
+}

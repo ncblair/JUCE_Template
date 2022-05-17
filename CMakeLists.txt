@@ -79,6 +79,7 @@ target_sources(TEMPLATE
         src/audio/ADSR.cpp
         src/interface/CustomLookAndFeel.cpp
         src/interface/FooterComponent.cpp
+        src/interface/IconPropertySlider.cpp
         src/interface/LabeledKnobComponent.cpp
         src/interface/ADSRComponent.cpp
         src/interface/ModulatorLabel.cpp
@@ -111,7 +112,9 @@ target_compile_definitions(TEMPLATE
 # static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
 # Conversion to binary-data will happen when your target is built.
 
-juce_add_binary_data(AudioPluginData SOURCES assets/type/AnekTamil/AnekTamil-Regular.ttf)
+juce_add_binary_data(AudioPluginData SOURCES 
+                        assets/type/AnekTamil/AnekTamil-Regular.ttf 
+                        assets/png/ZOOM_ICON.png)
 
 # `target_link_libraries` links libraries and JUCE modules to other libraries or executables. Here,
 # we're linking our executable target to the `juce::juce_audio_utils` module. Inter-module

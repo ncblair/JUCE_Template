@@ -33,6 +33,8 @@ class Matrix {
     float propertyValue(int property_id);
     juce::NormalisableRange<float> propertyRange(int property_id);
     juce::UndoManager* getUndoManager();
+
+    void reload_state();
     
     // constants
     const float DEFAULT_MOD_DEPTH{0.3};

@@ -23,11 +23,11 @@ static const juce::Array<juce::NormalisableRange<float>> PROPERTY_RANGES {
     // ENABLE_MPE
     juce::NormalisableRange<float>(0.0f, 1.0f, 1.0f, 1.0f),
     // ADSR_1_VIEWER_ZOOM (in Seconds)
-    juce::NormalisableRange<float>(0.1f, 60.0f, 0.0f, 1.0f),
+    juce::NormalisableRange<float>(0.3f, 60.0f, 0.0f, 1.0f),
     // ADSR_2_VIEWER_ZOOM
-    juce::NormalisableRange<float>(0.1f, 60.0f, 0.0f, 1.0f),
+    juce::NormalisableRange<float>(0.3f, 60.0f, 0.0f, 1.0f),
     // ADSR_3_VIEWER_ZOOM
-    juce::NormalisableRange<float>(0.1f, 60.0f, 0.0f, 1.0f),
+    juce::NormalisableRange<float>(0.3f, 60.0f, 0.0f, 1.0f),
 };
 
 static const juce::Array<float> PROPERTY_DEFAULTS {

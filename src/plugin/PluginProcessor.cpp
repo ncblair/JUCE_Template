@@ -109,7 +109,8 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
  
     if (xmlState.get() != nullptr)
         if (xmlState->hasTagName (matrix->getParamTree()->state.getType()))
-            matrix->getParamTree()->replaceState (juce::ValueTree::fromXml (*xmlState));
+            matrix->getParamTree()->replaceState(juce::ValueTree::fromXml(*xmlState)); //apvts
+            matrix->reload_state();
 }
 
 //==============================================================================
