@@ -122,7 +122,7 @@ static const juce::Array<float> PARAMETER_DEFAULTS {
     // ADSR_1_SUSTAIN
     1.0f,
     // ADSR_1_RELEASE
-    1000.0f,
+    400.0f,
     // ADSR_1_RELEASE_CURVE
     0.5f,
     // ADSR_2_ATTACK
@@ -136,7 +136,7 @@ static const juce::Array<float> PARAMETER_DEFAULTS {
     // ADSR_2_SUSTAIN
     1.0f,
     // ADSR_2_RELEASE
-    1000.0f,
+    400.0f,
     // ADSR_2_RELEASE_CURVE
     0.5f,
     // ADSR_3_ATTACK
@@ -150,7 +150,7 @@ static const juce::Array<float> PARAMETER_DEFAULTS {
     // ADSR_3_SUSTAIN
     1.0f,
     // ADSR_3_RELEASE
-    1000.0f,
+    400.0f,
     // ADSR_3_RELEASE_CURVE
     0.5f,
 };

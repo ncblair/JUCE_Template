@@ -6,7 +6,7 @@ class Matrix;
 
 class FooterComponent : public  juce::Component {
   public:
-    FooterComponent(Matrix* m, juce::UndoManager* undoManager);
+    FooterComponent(Matrix* m);
 
     void paint (juce::Graphics& g) override;
 

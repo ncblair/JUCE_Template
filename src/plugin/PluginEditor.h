@@ -6,6 +6,8 @@ class ADSRParentComponent;
 class LabeledKnobComponent;
 class TooltipComponent;
 class PopupParameterComponent;
+class PresetBrowserComponent;
+class SavePresetDialog;
 
 //includes
 #include "PluginProcessor.h"
@@ -34,6 +36,8 @@ private:
     std::unique_ptr<LabeledKnobComponent> semitones_knob;
     std::unique_ptr<TooltipComponent> tooltip;
     std::unique_ptr<PopupParameterComponent> knob_popup;
+    std::unique_ptr<SavePresetDialog> save_preset_popup;
+    std::unique_ptr<PresetBrowserComponent> preset_browser;
     // juce::TooltipWindow tooltip{ this };
     
 

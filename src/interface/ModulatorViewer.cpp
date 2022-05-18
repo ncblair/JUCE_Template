@@ -176,6 +176,7 @@ ModulatorViewer::ModulatorViewer(Matrix* m, int modulator_id) {
         addAndMakeVisible(*(handles[handle_ids[i]]));
     }
 
+    zoom_img = juce::ImageCache::getFromMemory(BinaryData::ZOOM_ICON_png, BinaryData::ZOOM_ICON_pngSize);
     zoom_slider = std::make_unique<IconPropertySlider>(m, MODULATOR_PROPERTIES[modulator_id][ZOOM], "ADSR Window Zoom", zoom_img);
     addAndMakeVisible(*zoom_slider);
 }

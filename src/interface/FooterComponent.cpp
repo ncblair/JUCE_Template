@@ -1,11 +1,11 @@
 #include "FooterComponent.h"
 #include "../managers/matrix/Matrix.h"
 
-FooterComponent::FooterComponent(Matrix* m, juce::UndoManager* undoManager) : undoButton("undo"), redoButton("redo") {
+FooterComponent::FooterComponent(Matrix* m) : undoButton("undo"), redoButton("redo") {
     // undo redo
     addAndMakeVisible (undoButton);
     addAndMakeVisible (redoButton);
-    undo_manager = undoManager;
+    undo_manager = m->getUndoManager();
     undoButton.onClick = [this] { undo_manager->undo(); };
     redoButton.onClick = [this] { undo_manager->redo(); };
 

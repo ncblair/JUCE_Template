@@ -15,6 +15,7 @@ LabeledKnobComponent::LabeledKnobComponent(Matrix* m, int p_id, juce::String too
     knob.addMouseListener(this, true);
 
     knob_attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(*(matrix->getParamTree()), param_name, knob);
+
     addAndMakeVisible(label);
     label.setText (label_str, juce::dontSendNotification);
     label.setJustificationType(juce::Justification::centred);
@@ -83,15 +84,17 @@ void LabeledKnobComponent::mouseDown (const MouseEvent& e) {
                 }
                 else if (result == 1) {
                     // reset
+                    matrix->reset_parameter(param_id);
                 }
                 else if (result == 2) {
                     // reset all modulators
-                    auto num_children = modulators.getNumChildren();
-                    while (modulators.getNumChildren()) {
-                        auto mod_node = modulators.getChild(0);
-                        int mod_id = mod_node.getProperty("MOD_ID");
-                        matrix->disconnect(mod_id, param_id);
-                    }
+                    matrix->disconnect_all(param_id);
+                    // auto num_children = modulators.getNumChildren();
+                    // while (modulators.getNumChildren()) {
+                    //     auto mod_node = modulators.getChild(0);
+                    //     int mod_id = mod_node.getProperty("MOD_ID");
+                    //     matrix->disconnect(mod_id, param_id);
+                    // }
                 }
                 else {
                     // auto num_children = modulators.getNumChildren();

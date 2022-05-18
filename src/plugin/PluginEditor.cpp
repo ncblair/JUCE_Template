@@ -4,6 +4,7 @@
 #include "../interface/LabeledKnobComponent.h"
 #include "../interface/TooltipComponent.h"
 #include "../interface/PopupParameterComponent.h"
+#include "../interface/PresetBrowserComponent.h"
 #include "../managers/matrix/Matrix.h"
 
 //==============================================================================
@@ -15,8 +16,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 
     // create components at top (so they are not null ptrs when we set bounds)
     footer = std::make_unique<FooterComponent>(
-        processorRef.matrix.get(),
-        processorRef.matrix->getUndoManager()
+        processorRef.matrix.get()
     );
     midi_keyboard = std::make_unique<MidiKeyboardComponent>(
                         processorRef.keyboard_state, 
@@ -45,6 +45,12 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     knob_popup = std::make_unique<PopupParameterComponent>();
 
     tooltip = std::make_unique<TooltipComponent>();
+
+    save_preset_popup = std::make_unique<SavePresetDialog>(processorRef.matrix.get());
+    preset_browser = std::make_unique<PresetBrowserComponent>(
+        processorRef.matrix.get(),
+        save_preset_popup.get()
+    );
     
 
     setSize (900, 700);
@@ -69,7 +75,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     addAndMakeVisible(*knob_popup);
 
     // tooltip
-    addAndMakeVisible(*tooltip);
+    addChildComponent(*tooltip);
+
+    // preset browser
+    addAndMakeVisible(*preset_browser);
+    addChildComponent(*save_preset_popup);
 
     
     // tooltip.setMillisecondsBeforeTipAppears(0);
@@ -110,6 +120,10 @@ void AudioPluginAudioProcessorEditor::resized()
     auto left = area.removeFromLeft(area.proportionOfWidth(0.6f));
     auto right_top = area.removeFromTop(area.proportionOfHeight(0.5f));
     envelopes->setBounds(right_top);
+    auto left_top = left.removeFromTop(proportionOfHeight(0.0625f));
+    auto preset_browser_area = left_top.removeFromRight(left_top.proportionOfWidth(0.5f));
+    preset_browser->setBounds(preset_browser_area);
+    save_preset_popup->setBounds(getLocalBounds()*0.8f + (getLocalBounds()*0.2f).getCentre());
     // look_and_feel.setFontSize(15.0f*sw);
 }
 

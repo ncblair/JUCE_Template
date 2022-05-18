@@ -107,10 +107,12 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     // whose contents will have been created by the getStateInformation() call.
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
  
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName (matrix->getParamTree()->state.getType()))
+    if (xmlState.get() != nullptr){
+        if (xmlState->hasTagName (matrix->getParamTree()->state.getType())){
             matrix->getParamTree()->replaceState(juce::ValueTree::fromXml(*xmlState)); //apvts
             matrix->reload_state();
+        }
+    }
 }
 
 //==============================================================================

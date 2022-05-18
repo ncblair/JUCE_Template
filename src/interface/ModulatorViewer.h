@@ -83,7 +83,7 @@ class ModulatorViewer : public juce::Component, public juce::Timer {
     std::vector<int> handle_ids;
 
     std::unique_ptr<IconPropertySlider> zoom_slider;
-    const juce::Image zoom_img = juce::ImageCache::getFromMemory(BinaryData::ZOOM_ICON_png, BinaryData::ZOOM_ICON_pngSize);
+    juce::Image zoom_img;
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ModulatorViewer)
