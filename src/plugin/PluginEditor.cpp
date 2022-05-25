@@ -5,6 +5,7 @@
 #include "../interface/TooltipComponent.h"
 #include "../interface/PopupParameterComponent.h"
 #include "../interface/PresetBrowserComponent.h"
+#include "../interface/SoundfileComponent.h"
 #include "../managers/matrix/Matrix.h"
 
 //==============================================================================
@@ -12,7 +13,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     : AudioProcessorEditor (&p), processorRef (p)
 {
     std::cout << "EDITOR CONSTRUCTOR" << std::endl;
-    startTimerHz(5);
+    startTimerHz(1);
 
     // create components at top (so they are not null ptrs when we set bounds)
     footer = std::make_unique<FooterComponent>(
@@ -51,6 +52,12 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
         processorRef.matrix.get(),
         save_preset_popup.get()
     );
+
+    // getChild(0) #hardcode for the first (and only in this case) child
+    soundfile_component_1 = std::make_unique<SoundfileComponent>(
+        processorRef.matrix.get(),
+        processorRef.matrix->getAudioTree()
+    );
     
 
     setSize (900, 700);
@@ -80,6 +87,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     // preset browser
     addAndMakeVisible(*preset_browser);
     addChildComponent(*save_preset_popup);
+
+    // soundfile player
+    addAndMakeVisible(*soundfile_component_1);
 
     
     // tooltip.setMillisecondsBeforeTipAppears(0);
@@ -124,6 +134,8 @@ void AudioPluginAudioProcessorEditor::resized()
     auto preset_browser_area = left_top.removeFromRight(left_top.proportionOfWidth(0.5f));
     preset_browser->setBounds(preset_browser_area);
     save_preset_popup->setBounds(getLocalBounds()*0.8f + (getLocalBounds()*0.2f).getCentre());
+    auto left_under_top = left.removeFromTop(proportionOfHeight(0.0625f));
+    soundfile_component_1->setBounds(left_under_top.removeFromRight(left_under_top.proportionOfWidth(0.5f)));
     // look_and_feel.setFontSize(15.0f*sw);
 }
 
@@ -134,6 +146,7 @@ void AudioPluginAudioProcessorEditor::mouseDown (const MouseEvent& e) {
 
 void AudioPluginAudioProcessorEditor::timerCallback() {
     if (!isMouseButtonDownAnywhere()) {
+        // std::cout << "begin transaction" << std::endl;
         processorRef.matrix->getUndoManager()->beginNewTransaction();
     }
 }

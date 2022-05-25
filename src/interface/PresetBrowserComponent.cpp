@@ -36,14 +36,15 @@ void SavePresetDialog::save() {
     matrix->save_preset(preset_name_field.getText());
     setVisible(false); 
     reset();
-    current_preset_name = matrix->get_preset_name();
+    current_preset_name.setValue (matrix->get_preset_name());
 }
 
 void SavePresetDialog::reset() {
     preset_name_field.clear();
 }
 
-PresetBrowserComponent::PresetBrowserComponent(Matrix* m, SavePresetDialog* dialog_window) {
+PresetBrowserComponent::PresetBrowserComponent(Matrix* m, SavePresetDialog* dialog_window) : preset_tree(m->getPresetTree()) 
+{
     matrix = m;
     save_dialog_window = dialog_window;
     // undo redo
@@ -61,6 +62,9 @@ PresetBrowserComponent::PresetBrowserComponent(Matrix* m, SavePresetDialog* dial
 
     // matrix->add_listener_to_preset_tree(this); // update text on preset change
     // matrix->getPresetTree()->addListener(this);
+    // matrix->getPresetTree().getPropertyAsValue("NAME", nullptr).addListener(this);
+    // save_dialog_window->current_preset_name.addListener(this);
+    preset_tree.addListener(this);
     
 }
 
@@ -85,7 +89,7 @@ void PresetBrowserComponent::mouseDown (const MouseEvent& e) {
         int i = 0;
         preset_menu.addItem(++i,"INIT",true);
 
-        preset_files = matrix->presets_dir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.template_preset");
+        preset_files = matrix->PRESETS_DIR.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.template_preset");
 
         for (auto& file : preset_files) {
             preset_menu.addItem(++i, file.getFileNameWithoutExtension(), true);
@@ -108,7 +112,7 @@ void PresetBrowserComponent::mouseDown (const MouseEvent& e) {
                 else if (result < preset_files.size() + 2){
                     matrix->load_preset(preset_files[result - 2].getFileNameWithoutExtension());
                 }
-                preset_label.setText(matrix->get_preset_name(), juce::dontSendNotification);
+                // preset_label.setText(matrix->get_preset_name(), juce::dontSendNotification);
             }
         );
 
@@ -124,7 +128,7 @@ void PresetBrowserComponent::prompt_save_dialog() {
 //     // value_popup_box.dismiss();
 // }
 
-void PresetBrowserComponent::valueChanged(juce::Value& value) {
-    std::cout << "Preset Tree Changed " << std::endl;
+void PresetBrowserComponent::valueTreePropertyChanged(ValueTree &treeWhosePropertyHasChanged, const Identifier &property){
+    // std::cout << "Preset Tree Changed " << std::endl;
     preset_label.setText(matrix->get_preset_name(), juce::dontSendNotification);
 }

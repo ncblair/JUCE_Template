@@ -2,8 +2,8 @@
 #include "IconPropertySlider.h"
 #include "../util/Modulator.h"
 #include "../managers/matrix/Matrix.h"
-#include "../audio/ADSR.h"
-
+#include "../modulators/ADSRModulator.h"
+#include "../modulators/NoteState.h"
 
 ViewerHandle::ViewerHandle(Matrix* m, int m_id, int p_id, int p_id_2) {
     mouse_hovering = false;
@@ -198,25 +198,35 @@ void ModulatorViewer::paint (juce::Graphics& g) {
     g.fillRect(0, getHeight() - m, getWidth(), getHeight());
 
     auto total_length_ms = 1000.0f * matrix->propertyValue(MODULATOR_PROPERTIES[mod_id][ZOOM]);
-    
+
+    auto note_state = NoteState();
     auto release_ms = adsr->get_parameter(ATK) + adsr->get_parameter(DEC);
+
+    
 
     // position handles
     auto atk_x = float(w) * adsr->get_parameter(ATK) / total_length_ms + m;
     auto atk_y = m;
     auto atk_curve_x = (atk_x + m) * 0.5f;
-    auto atk_curve_y = float(h) * (1.0f - adsr->get(adsr->get_parameter(ATK) * 0.5f, release_ms)) + m;
+    note_state.set_time(adsr->get_parameter(ATK) * 0.5f);
+    note_state.set_release_time(release_ms);
+    // std::cout << note_state.get_time() << " " << note_state.get_release_time() << std::endl;
+    auto atk_curve_y = float(h) * (1.0f - adsr->get(note_state)) + m;
     auto dec_x = atk_x + float(w) * adsr->get_parameter(DEC) / total_length_ms;
     auto dec_y = float(h) * (1.0f - adsr->get_parameter(SUS)) + m;
     auto dec_curve_x = (dec_x + atk_x)*0.5f;
-    auto dec_curve_y = float(h) * (1.0f - adsr->get((adsr->get_parameter(DEC) + 2.0 * adsr->get_parameter(ATK)) * 0.5f, release_ms)) + m;
+    note_state.set_time((adsr->get_parameter(DEC) + 2.0 * adsr->get_parameter(ATK)) * 0.5f);
+    note_state.set_release_time(release_ms);
+    auto dec_curve_y = float(h) * (1.0f - adsr->get(note_state)) + m;
     // if (dec_curve_y == 0.0f) {
     //     dec_curve_y = (dec_y + h + m) * 0.5f;
     // }
     auto rel_x = dec_x + float(w) * adsr->get_parameter(REL) / total_length_ms;
     auto rel_y = h + m;
     auto rel_curve_x = (rel_x + dec_x)*0.5f;
-    auto rel_curve_y = float(h) * (1.0f - adsr->get((adsr->get_parameter(REL) + 2.0 * release_ms) * 0.5f, release_ms)) + m;
+    note_state.set_time((adsr->get_parameter(REL) + 2.0 * release_ms) * 0.5f);
+    note_state.set_release_time(release_ms);
+    auto rel_curve_y = float(h) * (1.0f - adsr->get(note_state)) + m;
 
     auto max_attack_ms = float(PARAMETER_RANGES[ATK].getRange().getEnd());
     auto max_decay_ms = float(PARAMETER_RANGES[DEC].getRange().getEnd());
@@ -274,7 +284,9 @@ void ModulatorViewer::paint (juce::Graphics& g) {
             break;
         }
         else {
-            p.lineTo(x_pos + m, m + h - float(h) * adsr->get(ms, release_ms));
+            note_state.set_time(ms);
+            note_state.set_release_time(release_ms);
+            p.lineTo(x_pos + m, m + h - float(h) * adsr->get(note_state));
         }
     }
 

@@ -8,6 +8,7 @@ class TooltipComponent;
 class PopupParameterComponent;
 class PresetBrowserComponent;
 class SavePresetDialog;
+class SoundfileComponent;
 
 //includes
 #include "PluginProcessor.h"
@@ -38,6 +39,7 @@ private:
     std::unique_ptr<PopupParameterComponent> knob_popup;
     std::unique_ptr<SavePresetDialog> save_preset_popup;
     std::unique_ptr<PresetBrowserComponent> preset_browser;
+    std::unique_ptr<SoundfileComponent> soundfile_component_1;
     // juce::TooltipWindow tooltip{ this };
     
 

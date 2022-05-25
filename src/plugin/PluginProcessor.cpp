@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 #include "../audio/SynthVoice.h"
 #include "../managers/matrix/Matrix.h"
+#include "../modulators/NoteState.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor()
@@ -96,9 +97,16 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
-    auto state = matrix->getParamTree()->copyState();
+    auto state = matrix->get_state();
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
+
+    // // add binary data (audio files)
+    // auto size          = ((uint32_t *)destData.getData())[1];
+    // auto out_stream = juce::MemoryOutputStream(destData, true);
+    // out_stream.setPosition(size + 9);
+    // matrix->write_audio_to_binary(out_stream);
+    
 }
 
 void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -106,13 +114,7 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
- 
-    if (xmlState.get() != nullptr){
-        if (xmlState->hasTagName (matrix->getParamTree()->state.getType())){
-            matrix->getParamTree()->replaceState(juce::ValueTree::fromXml(*xmlState)); //apvts
-            matrix->reload_state();
-        }
-    }
+    matrix->load_from(xmlState.get());
 }
 
 //==============================================================================
@@ -123,6 +125,8 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 void PluginProcessor::update_parameters() {
+    auto main_state = NoteState();
+
     // get global ms_elapsed, last_release_time, etc
     double ms_elapsed = std::numeric_limits<double>::max();
     double last_release_time = std::numeric_limits<double>::max();
@@ -142,9 +146,16 @@ void PluginProcessor::update_parameters() {
             }
         }
     }
+    // TODO: change this to get the most recent note and most recently released note
+
+    main_state.set_time(ms_elapsed);
+    main_state.set_release_time(last_release_time);
 
     // updates the parameters associated with the modulators
-    matrix->update_modulator_parameters(ms_elapsed, last_release_time);
+    matrix->update_modulator_parameters(main_state);
+
+    // update the matrix's audio buffers in a thread safe way
+    matrix->update_audio_buffers();
     
     // updates the parameters associated with active voices
     for (int i = 0; i < synth.getNumVoices(); ++i) {

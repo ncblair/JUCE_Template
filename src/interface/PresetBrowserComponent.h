@@ -24,7 +24,7 @@ class SavePresetDialog : public juce::Component {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SavePresetDialog)
 };
 
-class PresetBrowserComponent : public  juce::Component, public juce::Value::Listener{
+class PresetBrowserComponent : public juce::Component, public juce::ValueTree::Listener{
   public:
     PresetBrowserComponent(Matrix* m, SavePresetDialog* dialog_window);
 
@@ -32,10 +32,12 @@ class PresetBrowserComponent : public  juce::Component, public juce::Value::List
     void resized() override;
     void mouseDown (const juce::MouseEvent& e) override;
 
-    void valueChanged(Value& value) override;
+    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
 
   private:
     void prompt_save_dialog(); // saves a preset
+
+    juce::ValueTree preset_tree;
     
     Matrix* matrix;
     SavePresetDialog* save_dialog_window;

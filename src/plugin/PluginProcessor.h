@@ -4,9 +4,10 @@ class Matrix;
 class PropertyManager;
 
 #include "PluginProcessorBase.h"
-#include "../audio/ADSR.h"
+// #include "../audio/ADSR.h"
+
 // #include "../util/Matrix.h"
-#include "../util/Modulator.h"
+// #include "../util/Modulator.h"
 
 
 //==============================================================================

@@ -76,7 +76,9 @@ target_sources(TEMPLATE
         src/plugin/DummyProcessor.cpp
         src/plugin/PluginEditor.cpp
         src/audio/SynthVoice.cpp
-        src/audio/ADSR.cpp
+        # src/audio/ADSR.cpp
+        src/modulators/ADSRModulator.cpp
+        src/modulators/NoteState.cpp
         src/interface/ADSRComponent.cpp
         src/interface/CustomLookAndFeel.cpp
         src/interface/FooterComponent.cpp
@@ -86,8 +88,10 @@ target_sources(TEMPLATE
         src/interface/ModulatorViewer.cpp
         src/interface/PopupParameterComponent.cpp
         src/Interface/PresetBrowserComponent.cpp
+        src/Interface/SoundfileComponent.cpp
         src/interface/TooltipComponent.cpp
-        src/managers/matrix/Matrix.cpp)
+        src/managers/matrix/Matrix.cpp
+        src/util/SafeBuffer.cpp)
 
 # use c++ 17
 target_compile_features(TEMPLATE PRIVATE cxx_std_17) # -std=c++17
