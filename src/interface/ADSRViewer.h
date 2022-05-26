@@ -3,7 +3,7 @@
 
 class Matrix;
 class Modulator;
-class IconPropertySlider;
+class IconSlider;
 
 #include <JuceHeader.h>
 
@@ -61,10 +61,10 @@ class FreeHandle : public ViewerHandle {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FreeHandle)
 };
 
-class ModulatorViewer : public juce::Component, public juce::Timer {
+class ADSRViewer : public juce::Component, public juce::Timer {
   public:
-    ModulatorViewer(Matrix* m, int modulator_id);
-    ~ModulatorViewer();
+    ADSRViewer(Matrix* m, int modulator_id);
+    ~ADSRViewer();
     void paint(juce::Graphics& g) override;
     void resized() override;
     void timerCallback() override;
@@ -82,9 +82,9 @@ class ModulatorViewer : public juce::Component, public juce::Timer {
 
     std::vector<int> handle_ids;
 
-    std::unique_ptr<IconPropertySlider> zoom_slider;
+    std::unique_ptr<IconSlider> zoom_slider;
     juce::Image zoom_img;
 
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ModulatorViewer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ADSRViewer)
 };

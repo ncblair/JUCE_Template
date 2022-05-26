@@ -1,7 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "../audio/SynthVoice.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 #include "../modulators/NoteState.h"
 
 //==============================================================================
@@ -171,8 +171,8 @@ void PluginProcessor::update_parameters() {
 }
 
 void PluginProcessor::update_MPE_enable() {
-    if (is_mpe_enabled != bool(matrix->propertyValue(ENABLE_MPE))) {
-        is_mpe_enabled = bool(matrix->propertyValue(ENABLE_MPE));
+    if (is_mpe_enabled != bool(matrix->paramValue(PARAM::ENABLE_MPE))) {
+        is_mpe_enabled = bool(matrix->paramValue(PARAM::ENABLE_MPE));
         if (is_mpe_enabled) {
             zone_layout.clearAllZones();
             zone_layout.setLowerZone(15, 48, 2);

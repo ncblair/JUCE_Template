@@ -1,7 +1,6 @@
-#include "ModulatorViewer.h"
-#include "IconPropertySlider.h"
-#include "../util/Modulator.h"
-#include "../managers/matrix/Matrix.h"
+#include "ADSRViewer.h"
+#include "IconSlider.h"
+#include "../matrix/Matrix.h"
 #include "../modulators/ADSRModulator.h"
 #include "../modulators/NoteState.h"
 
@@ -80,7 +79,7 @@ float ViewerHandle::get_mouse_x_pos_ms(const MouseEvent& e) {
     auto range = float(range_start + bounds.getWidth()) - range_start;
     auto position = e.getEventRelativeTo(viewer_component).getPosition();
     auto pos_in_range = float(position.getX()) - range_start;
-    auto total_length_ms = 1000.0f * matrix->propertyValue(MODULATOR_PROPERTIES[mod_id][ZOOM]);
+    auto total_length_ms = 1000.0f * matrix->paramValue(MODULATOR_PARAMS[mod_id][ADSR_PARAM::ZOOM]);
     auto ms_per_pixel = total_length_ms / viewer_component->getWidth();
     auto new_val = PARAMETER_RANGES[param_id].snapToLegalValue(pos_in_range * ms_per_pixel);
     return new_val;
@@ -154,38 +153,38 @@ void FreeHandle::mouseDrag (const MouseEvent& e) {
 
 //============================================================================================
 
-ModulatorViewer::ModulatorViewer(Matrix* m, int modulator_id) {
+ADSRViewer::ADSRViewer(Matrix* m, int modulator_id) {
     matrix = m;
     mod_id = modulator_id;
     adsr = matrix->getModulator(mod_id);
     startTimerHz(FRAMERATE);
 
     // add handles
-    handle_ids = {ATK_CURVE, ATK, DEC_CURVE, DEC, REL_CURVE, REL};
-    handles.resize(NumADSRParams);
+    handle_ids = {ADSR_PARAM::ATK_CURVE, ADSR_PARAM::ATK, ADSR_PARAM::DEC_CURVE, ADSR_PARAM::DEC, ADSR_PARAM::REL_CURVE, ADSR_PARAM::REL};
+    handles.resize(ADSR_PARAM::NumADSRParams);
 
-    handles[ATK_CURVE] = std::make_unique<VerticalCurveHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ATK_CURVE]);
-    handles[ATK] = std::make_unique<HorizontalHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ATK]);
-    handles[DEC_CURVE] = std::make_unique<VerticalCurveHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][DEC_CURVE]);
-    // Calling the Decay/Sustain handle handles[DEC]
-    handles[DEC] = std::make_unique<FreeHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][DEC], MODULATOR_PARAMS[modulator_id][SUS]);
-    handles[REL_CURVE] = std::make_unique<VerticalCurveHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][REL_CURVE]);
-    handles[REL] = std::make_unique<HorizontalHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][REL]);
+    handles[ADSR_PARAM::ATK_CURVE] = std::make_unique<VerticalCurveHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::ATK_CURVE]);
+    handles[ADSR_PARAM::ATK] = std::make_unique<HorizontalHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::ATK]);
+    handles[ADSR_PARAM::DEC_CURVE] = std::make_unique<VerticalCurveHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::DEC_CURVE]);
+    // Calling the Decay/Sustain handle handles[ADSR_PARAM::DEC]
+    handles[ADSR_PARAM::DEC] = std::make_unique<FreeHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::DEC], MODULATOR_PARAMS[modulator_id][ADSR_PARAM::SUS]);
+    handles[ADSR_PARAM::REL_CURVE] = std::make_unique<VerticalCurveHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::REL_CURVE]);
+    handles[ADSR_PARAM::REL] = std::make_unique<HorizontalHandle>(m, mod_id, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::REL]);
 
     for (int i = 0; i < handle_ids.size(); ++i) {
         addAndMakeVisible(*(handles[handle_ids[i]]));
     }
 
     zoom_img = juce::ImageCache::getFromMemory(BinaryData::ZOOM_ICON_png, BinaryData::ZOOM_ICON_pngSize);
-    zoom_slider = std::make_unique<IconPropertySlider>(m, MODULATOR_PROPERTIES[modulator_id][ZOOM], "ADSR Window Zoom", zoom_img);
+    zoom_slider = std::make_unique<IconSlider>(m, MODULATOR_PARAMS[modulator_id][ADSR_PARAM::ZOOM], "ADSR Window Zoom", zoom_img);
     addAndMakeVisible(*zoom_slider);
 }
 
-ModulatorViewer::~ModulatorViewer() {
+ADSRViewer::~ADSRViewer() {
 
 }
 
-void ModulatorViewer::paint (juce::Graphics& g) {
+void ADSRViewer::paint (juce::Graphics& g) {
     auto r = proportionOfWidth(HANDLE_RADIUS);
     auto m = proportionOfWidth(MARGIN);
     auto w = float(getWidth()) - 2.0f * m;
@@ -197,51 +196,48 @@ void ModulatorViewer::paint (juce::Graphics& g) {
     g.drawRect (getLocalBounds(), 2);
     g.fillRect(0, getHeight() - m, getWidth(), getHeight());
 
-    auto total_length_ms = 1000.0f * matrix->propertyValue(MODULATOR_PROPERTIES[mod_id][ZOOM]);
+    auto total_length_ms = 1000.0f * adsr->get_parameter(ADSR_PARAM::ZOOM);
 
     auto note_state = NoteState();
-    auto release_ms = adsr->get_parameter(ATK) + adsr->get_parameter(DEC);
+    auto release_ms = adsr->get_parameter(ADSR_PARAM::ATK) + adsr->get_parameter(ADSR_PARAM::DEC);
+    note_state.set_release_time(release_ms);
 
     
 
     // position handles
-    auto atk_x = float(w) * adsr->get_parameter(ATK) / total_length_ms + m;
+    auto atk_x = float(w) * adsr->get_parameter(ADSR_PARAM::ATK) / total_length_ms + m;
     auto atk_y = m;
     auto atk_curve_x = (atk_x + m) * 0.5f;
-    note_state.set_time(adsr->get_parameter(ATK) * 0.5f);
-    note_state.set_release_time(release_ms);
-    // std::cout << note_state.get_time() << " " << note_state.get_release_time() << std::endl;
+    note_state.set_time(adsr->get_parameter(ADSR_PARAM::ATK) * 0.5f);
+    // note_state.set_release_time(release_ms);
     auto atk_curve_y = float(h) * (1.0f - adsr->get(note_state)) + m;
-    auto dec_x = atk_x + float(w) * adsr->get_parameter(DEC) / total_length_ms;
-    auto dec_y = float(h) * (1.0f - adsr->get_parameter(SUS)) + m;
+    auto dec_x = atk_x + float(w) * adsr->get_parameter(ADSR_PARAM::DEC) / total_length_ms;
+    auto dec_y = float(h) * (1.0f - adsr->get_parameter(ADSR_PARAM::SUS)) + m;
     auto dec_curve_x = (dec_x + atk_x)*0.5f;
-    note_state.set_time((adsr->get_parameter(DEC) + 2.0 * adsr->get_parameter(ATK)) * 0.5f);
-    note_state.set_release_time(release_ms);
+    note_state.set_time((adsr->get_parameter(ADSR_PARAM::DEC) + 2.0 * adsr->get_parameter(ADSR_PARAM::ATK)) * 0.5f);
+    // note_state.set_release_time(release_ms);
     auto dec_curve_y = float(h) * (1.0f - adsr->get(note_state)) + m;
-    // if (dec_curve_y == 0.0f) {
-    //     dec_curve_y = (dec_y + h + m) * 0.5f;
-    // }
-    auto rel_x = dec_x + float(w) * adsr->get_parameter(REL) / total_length_ms;
+    auto rel_x = dec_x + float(w) * adsr->get_parameter(ADSR_PARAM::REL) / total_length_ms;
     auto rel_y = h + m;
     auto rel_curve_x = (rel_x + dec_x)*0.5f;
-    note_state.set_time((adsr->get_parameter(REL) + 2.0 * release_ms) * 0.5f);
-    note_state.set_release_time(release_ms);
+    note_state.set_time((adsr->get_parameter(ADSR_PARAM::REL) + 2.0 * release_ms) * 0.5f);
+    // note_state.set_release_time(release_ms);
     auto rel_curve_y = float(h) * (1.0f - adsr->get(note_state)) + m;
 
-    auto max_attack_ms = float(PARAMETER_RANGES[ATK].getRange().getEnd());
-    auto max_decay_ms = float(PARAMETER_RANGES[DEC].getRange().getEnd());
-    auto max_release_ms = float(PARAMETER_RANGES[REL].getRange().getEnd());
+    auto max_attack_ms = float(PARAMETER_RANGES[MODULATOR_PARAMS[mod_id][ADSR_PARAM::ATK]].getRange().getEnd());
+    auto max_decay_ms = float(PARAMETER_RANGES[MODULATOR_PARAMS[mod_id][ADSR_PARAM::DEC]].getRange().getEnd());
+    auto max_release_ms = float(PARAMETER_RANGES[MODULATOR_PARAMS[mod_id][ADSR_PARAM::REL]].getRange().getEnd());
     auto max_attack_x = w * (max_attack_ms / total_length_ms);
     auto max_decay_x = w * (max_decay_ms / total_length_ms);
     auto max_release_x = w * (max_release_ms / total_length_ms);
 
     // set handle position (top left)
-    handles[ATK_CURVE]->setCentrePosition(atk_curve_x, atk_curve_y);
-    handles[ATK]->setCentrePosition(atk_x, atk_y);
-    handles[DEC_CURVE]->setCentrePosition(dec_curve_x, dec_curve_y );
-    handles[DEC]->setCentrePosition(dec_x, dec_y);
-    handles[REL_CURVE]->setCentrePosition(rel_curve_x, rel_curve_y);
-    handles[REL]->setCentrePosition(rel_x, rel_y);
+    handles[ADSR_PARAM::ATK_CURVE]->setCentrePosition(atk_curve_x, atk_curve_y);
+    handles[ADSR_PARAM::ATK]->setCentrePosition(atk_x, atk_y);
+    handles[ADSR_PARAM::DEC_CURVE]->setCentrePosition(dec_curve_x, dec_curve_y );
+    handles[ADSR_PARAM::DEC]->setCentrePosition(dec_x, dec_y);
+    handles[ADSR_PARAM::REL_CURVE]->setCentrePosition(rel_curve_x, rel_curve_y);
+    handles[ADSR_PARAM::REL]->setCentrePosition(rel_x, rel_y);
 
     for (int i = 0; i < handle_ids.size() - 1; ++i) {
         auto curve_handle = dynamic_cast<VerticalCurveHandle*>(handles[handle_ids[i]].get());
@@ -259,12 +255,12 @@ void ModulatorViewer::paint (juce::Graphics& g) {
     }
 
     // constraints on mouse drag position
-    handles[ATK_CURVE]->constrain(atk_curve_x, h + m, 0, -h);
-    handles[ATK]->constrain(m, m, max_attack_x, 0);
-    handles[DEC_CURVE]->constrain(dec_curve_x, m, 0, dec_y - m);
-    handles[DEC]->constrain(atk_x, m, max_decay_x, h);
-    handles[REL_CURVE]->constrain(rel_curve_x, dec_y, 0, h + m - dec_y);
-    handles[REL]->constrain(dec_x, h + m, max_release_x, 0);
+    handles[ADSR_PARAM::ATK_CURVE]->constrain(atk_curve_x, h + m, 0, -h);
+    handles[ADSR_PARAM::ATK]->constrain(m, m, max_attack_x, 0);
+    handles[ADSR_PARAM::DEC_CURVE]->constrain(dec_curve_x, m, 0, dec_y - m);
+    handles[ADSR_PARAM::DEC]->constrain(atk_x, m, max_decay_x, h);
+    handles[ADSR_PARAM::REL_CURVE]->constrain(rel_curve_x, dec_y, 0, h + m - dec_y);
+    handles[ADSR_PARAM::REL]->constrain(dec_x, h + m, max_release_x, 0);
 
     // draw the waveform
     juce::Path p;
@@ -285,7 +281,7 @@ void ModulatorViewer::paint (juce::Graphics& g) {
         }
         else {
             note_state.set_time(ms);
-            note_state.set_release_time(release_ms);
+            // note_state.set_release_time(release_ms);
             p.lineTo(x_pos + m, m + h - float(h) * adsr->get(note_state));
         }
     }
@@ -293,7 +289,7 @@ void ModulatorViewer::paint (juce::Graphics& g) {
     g.strokePath(p, juce::PathStrokeType(2));
 }
 
-void ModulatorViewer::resized() {
+void ADSRViewer::resized() {
     auto diameter = 2.0f * proportionOfWidth(HANDLE_RADIUS);
     for (int i = 0; i < handle_ids.size(); ++i) {
         handles[handle_ids[i]]->setSize(diameter, diameter);
@@ -304,6 +300,6 @@ void ModulatorViewer::resized() {
     zoom_slider->setBounds(topright);
 }
 
-void ModulatorViewer::timerCallback() {
+void ADSRViewer::timerCallback() {
     repaint();
 }

@@ -1,6 +1,6 @@
 #include "LabeledKnobComponent.h"
 // #include "ModulatorLabel.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 LabeledKnobComponent::LabeledKnobComponent(Matrix* m, int p_id, juce::String tooltip, juce::String label_str) {
     matrix = m;
@@ -13,7 +13,7 @@ LabeledKnobComponent::LabeledKnobComponent(Matrix* m, int p_id, juce::String too
     knob.setTooltip(tooltip);
     // knob.setInterceptsMouseClicks(false, false);
     knob.addMouseListener(this, true);
-
+    
     knob_attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(*(matrix->getParamTree()), param_name, knob);
 
     addAndMakeVisible(label);

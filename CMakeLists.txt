@@ -78,19 +78,20 @@ target_sources(TEMPLATE
         src/audio/SynthVoice.cpp
         # src/audio/ADSR.cpp
         src/modulators/ADSRModulator.cpp
+        src/modulators/LFOModulator.cpp
         src/modulators/NoteState.cpp
         src/interface/ADSRComponent.cpp
         src/interface/CustomLookAndFeel.cpp
         src/interface/FooterComponent.cpp
-        src/interface/IconPropertySlider.cpp
+        src/interface/IconSlider.cpp
         src/interface/LabeledKnobComponent.cpp
         src/interface/ModulatorLabel.cpp
-        src/interface/ModulatorViewer.cpp
+        src/interface/ADSRViewer.cpp
         src/interface/PopupParameterComponent.cpp
         src/Interface/PresetBrowserComponent.cpp
         src/Interface/SoundfileComponent.cpp
         src/interface/TooltipComponent.cpp
-        src/managers/matrix/Matrix.cpp
+        src/matrix/Matrix.cpp
         src/util/SafeBuffer.cpp)
 
 # use c++ 17

@@ -3,7 +3,7 @@
 class LabeledKnobComponent;
 class ModulatorLabel;
 class Matrix;
-class ModulatorViewer;
+class ADSRViewer;
 
 #include <JuceHeader.h>
 
@@ -21,7 +21,7 @@ class ADSRComponent : public  juce::Component {
     std::unique_ptr<LabeledKnobComponent> sustain_knob;
     std::unique_ptr<LabeledKnobComponent> release_knob;
 
-    std::unique_ptr<ModulatorViewer> envelope_viewer;
+    std::unique_ptr<ADSRViewer> adsr_viewer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ADSRComponent)
 };

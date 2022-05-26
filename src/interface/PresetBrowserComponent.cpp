@@ -1,5 +1,5 @@
 #include "PresetBrowserComponent.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 
 SavePresetDialog::SavePresetDialog(Matrix* m)  : save_button("Save"), cancel_button("Cancel") {

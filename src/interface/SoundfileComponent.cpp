@@ -1,5 +1,5 @@
 #include "SoundfileComponent.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 SoundfileComponent::SoundfileComponent(Matrix* m, juce::ValueTree audiotree) : audio_tree(audiotree) {
     matrix = m;

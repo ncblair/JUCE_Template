@@ -1,5 +1,5 @@
 #include "FooterComponent.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 FooterComponent::FooterComponent(Matrix* m) : undoButton("undo"), redoButton("redo") {
     // undo redo
@@ -17,7 +17,7 @@ FooterComponent::FooterComponent(Matrix* m) : undoButton("undo"), redoButton("re
     mpe_button.setColour(juce::ToggleButton::ColourIds::tickDisabledColourId, juce::Colours::black);
     mpe_button.setTooltip("Enable Midi Polyphonic Expression (MPE)");
     // //attach mpe button
-    mpe_button_attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(*(m->getPropertyTree()), PROPERTY_NAMES[ENABLE_MPE], mpe_button);
+    mpe_button_attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(*(m->getPropertyTree()), PARAMETER_NAMES[PARAM::ENABLE_MPE], mpe_button);
     
     //labels
     addAndMakeVisible(title_label);

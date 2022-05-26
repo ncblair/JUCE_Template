@@ -1,5 +1,5 @@
 #include "ModulatorLabel.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 ModulatorLabel::ModulatorLabel(Matrix* matrix, int modulator_id, juce::String tooltip, juce::String label_str) {
     mod_id = modulator_id;

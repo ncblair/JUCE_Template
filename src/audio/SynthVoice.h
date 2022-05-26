@@ -1,11 +1,9 @@
 #pragma once
 
 class Matrix;
-// class NoteState;
 
 #include <JuceHeader.h>
 #include "../modulators/NoteState.h"
-// #include "../util/ParamAttachment.h"
 
 class SynthVoice : public juce::MPESynthesiserVoice {
   // For the template i'll do a simple Sine Voice
@@ -43,21 +41,13 @@ class SynthVoice : public juce::MPESynthesiserVoice {
     std::array<int, NumVoiceParams> param_ids;
     Matrix* matrix;
 
-    
     //Channel Management
     std::vector<float*> write_pointers;
     
     // Voice Management
     bool note_on{false};
-    // double ms_elapsed;
-    // bool is_released{true};
-    // double release_time{std::numeric_limits<double>::max()};
 
     NoteState note_state;
-
-    // MIDI information
-    // float vel;
-    // double frequency;
 
     // internally, voice gain is always hard coded mapped to ADSR 1
     // This value also controls the note off logic
@@ -69,5 +59,4 @@ class SynthVoice : public juce::MPESynthesiserVoice {
     // sampler variables
     std::vector<const float*> sample_read_pointers;
     double position_in_sample;
-    // juce::AudioBuffer<float>* audio_buffer_1;    
 };

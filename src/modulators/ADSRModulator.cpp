@@ -1,18 +1,22 @@
 #include "ADSRModulator.h"
 #include "NoteState.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 
-ADSRModulator::ADSRModulator(const std::vector<int>* p_ids) {
-    param_ids = *p_ids;
+ADSRModulator::ADSRModulator(const std::vector<int> p_ids) {
+    param_ids = p_ids;
 }
 
 void ADSRModulator::update_parameters(Matrix* matrix, const NoteState main_state) {
-    for (int p_id = 0; p_id < NumADSRParams; ++p_id) {
-        params[p_id] = matrix->modulatedParamValue(param_ids[p_id], main_state);
+    for (int p_id = 0; p_id < ADSR_PARAM::NumADSRParams; ++p_id) {
+        if (PARAMETER_AUTOMATABLE[param_ids[p_id]]) {
+            params[p_id] = matrix->modulatedParamValue(param_ids[p_id], main_state);
+        }
+        else {
+            params[p_id] = matrix->paramValue(param_ids[p_id]);
+        }
     }
 }
-
 
 float ADSRModulator::get(const NoteState note_state) {
     /*
@@ -28,21 +32,21 @@ float ADSRModulator::get(const NoteState note_state) {
     // std::cout << !note_state.is_released();
     if (!note_state.is_released()) {
         //ADS stages
-        if (ms < params[ATK]) {
+        if (ms < params[ADSR_PARAM::ATK]) {
             //ATTACK
             // std::cout << "inside 2x" << ms << " " << params[ATK] << " " << params[ATK_CURVE] << std::endl;
-            return std::pow(ms / params[ATK], params[ATK_CURVE]);
+            return std::pow(ms / params[ADSR_PARAM::ATK], params[ADSR_PARAM::ATK_CURVE]);
         }
         else {
             //DS sustains
-            ms = ms - params[ATK];
-            if (ms < params[DEC]) {
+            ms = ms - params[ADSR_PARAM::ATK];
+            if (ms < params[ADSR_PARAM::DEC]) {
                 //DECAY
-                return 1.0f - (1.0f - params[SUS]) * std::pow(ms / params[DEC], params[DEC_CURVE]);
+                return 1.0f - (1.0f - params[ADSR_PARAM::SUS]) * std::pow(ms / params[ADSR_PARAM::DEC], params[ADSR_PARAM::DEC_CURVE]);
             }
             else {
                 //SUSTAIN
-                return params[SUS];
+                return params[ADSR_PARAM::SUS];
             }
         }
     }
@@ -50,14 +54,14 @@ float ADSRModulator::get(const NoteState note_state) {
         // std::cout << "RELEASED" << std::endl;
         auto release_time = note_state.get_release_time();
         auto ms_since_release = ms - release_time;
-        if (ms_since_release < params[REL]) {
+        if (ms_since_release < params[ADSR_PARAM::REL]) {
             // RELEASE
             // get the value when of the envelope when it was released recursively
             // this will prevent jumps on release during attack stage
             auto temp_ns = NoteState();
             temp_ns.set_time(release_time);
             temp_ns.mark_unreleased();
-            return get(temp_ns) * (1.0f - std::pow(ms_since_release / params[REL], params[REL_CURVE]));
+            return get(temp_ns) * (1.0f - std::pow(ms_since_release / params[ADSR_PARAM::REL], params[ADSR_PARAM::REL_CURVE]));
         }
         else {
             // END

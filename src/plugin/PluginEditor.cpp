@@ -6,7 +6,7 @@
 #include "../interface/PopupParameterComponent.h"
 #include "../interface/PresetBrowserComponent.h"
 #include "../interface/SoundfileComponent.h"
-#include "../managers/matrix/Matrix.h"
+#include "../matrix/Matrix.h"
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcessor& p)
@@ -31,16 +31,16 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 
     gain_knob = std::make_unique<LabeledKnobComponent>(
         processorRef.matrix.get(), // apvts
-        LEVEL, // apvts param ID
+        PARAM::LEVEL, // apvts param ID
         "level (in decibels) of the synth voice", // Knob Tooltip
-        PARAMETER_NAMES[LEVEL] // Knob Label
+        PARAMETER_NAMES[PARAM::LEVEL] // Knob Label
     );
 
     semitones_knob = std::make_unique<LabeledKnobComponent>(
         processorRef.matrix.get(),
-        SEMITONES,
+        PARAM::SEMITONES,
         "Semitones pitch bend of the synth voice",
-        PARAMETER_NAMES[SEMITONES]
+        PARAMETER_NAMES[PARAM::SEMITONES]
     );
 
     knob_popup = std::make_unique<PopupParameterComponent>();
