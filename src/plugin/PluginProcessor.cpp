@@ -151,11 +151,11 @@ void PluginProcessor::update_parameters() {
     main_state.set_time(ms_elapsed);
     main_state.set_release_time(last_release_time);
 
-    // updates the parameters associated with the modulators
-    matrix->update_modulator_parameters(main_state);
+    // updates the parameters associated with the modulators + updates with thread safe objects
+    matrix->update_state(main_state);
 
-    // update the matrix's audio buffers in a thread safe way
-    matrix->update_audio_buffers();
+    // // update the matrix's audio buffers in a thread safe way
+    // matrix->update_audio_buffers();
     
     // updates the parameters associated with active voices
     for (int i = 0; i < synth.getNumVoices(); ++i) {

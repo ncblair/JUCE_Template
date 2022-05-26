@@ -4,13 +4,12 @@ class Modulator;
 class PluginProcessor;
 class DummyProcessor;
 class NoteState;
-// class SafeBuffer;
 
 #include <JuceHeader.h>
 #include "ParameterDefines.h"
 #include "ModulatorDefines.h"
 // #include "PropertyDefines.h"
-#include "../util/SafeBuffer.h"
+#include "../util/ThreadSafePointer.h"
 
 /*
 Matrix manages Parameters, Properties, Presets, Modulation, and Audio
@@ -23,11 +22,13 @@ class Matrix : public juce::ValueTree::Listener {
   public:
     Matrix(PluginProcessor* proc);
     ~Matrix();
+
+    void update_state(NoteState main_state);
+
     // Atomically Safe/Realtime safe Methods called on Audio Thread
     float paramValue(int param_id);
     float modulatorValue(int mod_id, NoteState note_state);
     float modulatedParamValue(int param_id, NoteState note_state);
-    void update_modulator_parameters(NoteState main_state);
 
     // State (might wanna replace this with wraped functions, like getParameterValue()?)
     juce::AudioProcessorValueTreeState* getParamTree();
@@ -66,9 +67,16 @@ class Matrix : public juce::ValueTree::Listener {
     void load_audio_file();
     void remove_audio_file();
     juce::AudioBuffer<float>* get_audio_buffer();
-    void update_audio_buffers();
-    void queue_buffer_from_value_tree();
+
+    // Thread Safety
+    void audio_tree_changed();
+    void modulation_matrix_changed();
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
+    void valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded) override;
+    void valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
+
+    //LFO (we need to store the LFO UI points separately because we can create them in real time)
+    juce::ValueTree get_lfo_points(int lfo_mod_id); 
 
     juce::UndoManager* getUndoManager();
     
@@ -85,6 +93,7 @@ class Matrix : public juce::ValueTree::Listener {
     juce::ValueTree matrix;
     juce::ValueTree preset_tree;
     juce::ValueTree audio_tree;
+    juce::ValueTree lfo_tree;
 
     // What happens if we write to this? Add a modulator, say by command line? 
     // We will probably need to store modulators serialized in a valueTree
@@ -101,7 +110,7 @@ class Matrix : public juce::ValueTree::Listener {
     std::unique_ptr<juce::FileChooser> file_chooser;
     juce::AudioFormatManager format_manager;
 
-    //Audio 
-    // TODO: Turn this into array maybe? Maybe number of buffers is a param? Maybe not
-    SafeBuffer audio_buffer;
+    // Thread Safe Objects 
+    ThreadSafePointer<juce::AudioBuffer<float>> audio_buffer;
+    ThreadSafePointer<juce::ValueTree> read_only_matrix;
 };

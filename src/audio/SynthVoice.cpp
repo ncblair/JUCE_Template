@@ -135,6 +135,6 @@ void SynthVoice::update_parameters() {
         params[p_id].setTargetValue(matrix->modulatedParamValue(param_ids[p_id], note_state));
     }
     // gain is taken directly from env 1 value, not an apvts parameter
-    gain.setTargetValue(matrix->modulatorValue(ADSR_1, note_state));
+    gain.setTargetValue(matrix->modulatorValue(MOD::ADSR_1, note_state));
     
 }

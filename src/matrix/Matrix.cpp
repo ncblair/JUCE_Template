@@ -70,12 +70,40 @@ Matrix::Matrix(PluginProcessor* proc) :
     //==============================================================================
     
     audio_tree = juce::ValueTree("AUDIO");
-    audio_tree.addListener(this);
     format_manager.registerBasicFormats();
+
+
+    //==============================================================================
+    //-> SAFE BUFFER INIT and ADD LISTENERS
+    //==============================================================================
+    // queue cleared buffer so that no audio glitches play
+    auto new_buf = new juce::AudioBuffer<float>(1, 1);
+    new_buf->clear();
+    audio_buffer.queue(new_buf);
+
+    // Queue Valid Audio Tree
+    read_only_matrix.queue(new juce::ValueTree("MATRIX"));
+
+    audio_tree.addListener(this);
+    matrix.addListener(this);
 }
 
 Matrix::~Matrix(){
 
+}
+
+void Matrix::update_state(NoteState main_state) {
+    audio_buffer.update();
+    read_only_matrix.update();
+
+    // This function updates the parameters associated with modulators based on modulator current state 
+    // TODO: update modulators first and cache
+    // We compute certain modulator values multiple times. 
+    // We need to get the modulator value for every parameter
+    // The modulators can be computed and cached, and then for each parameter accessed every time.
+    for (unsigned long m_id = 0; m_id < TotalNumberModulators; ++m_id) {
+        modulators[m_id]->update_parameters(this, main_state);
+    }
 }
 
 float Matrix::paramValue(int param_id) {
@@ -118,7 +146,7 @@ float Matrix::modulatedParamValue(int param_id, NoteState note_state) {
     jassert (PARAMETER_AUTOMATABLE[param_id]);
     
     float v = 0.0f;
-    juce::ValueTree mods = matrix.getChildWithName(PARAMETER_NAMES[param_id]);
+    juce::ValueTree mods = read_only_matrix.load()->getChildWithName(PARAMETER_NAMES[param_id]);
     for (int i = 0; i < mods.getNumChildren(); ++i) {
         auto mod_node = mods.getChild(i);
         float mod_depth = mod_node.getProperty("DEPTH");
@@ -136,7 +164,7 @@ float Matrix::modulatedParamValue(int param_id, NoteState note_state) {
 void Matrix::connect(int mod_id, int param_id, float depth) {
     jassert (PARAMETER_AUTOMATABLE[param_id]);
     
-    // TODO: Do this on the UI Thread and MAKE THREAD SAFE
+    // called from UI thread
     juce::ValueTree param_modulators = matrix.getChildWithName(PARAMETER_NAMES[param_id]);
     bool already_connected = false;
     for (int i = 0; i < param_modulators.getNumChildren(); ++i) {
@@ -163,7 +191,7 @@ void Matrix::disconnect(int mod_id, int param_id) {
     jassert (PARAMETER_AUTOMATABLE[param_id]);
 
     std::cout << "DISCONNECT " << MODULATOR_NAMES[mod_id] << " FROM " << PARAMETER_NAMES[param_id] << std::endl;
-    // TODO: Do this on the UI Thread and MAKE THREAD SAFE
+    // called from UI Thread
     juce::ValueTree param_modulators = matrix.getChildWithName(PARAMETER_NAMES[param_id]);
     param_modulators.removeChild(param_modulators.getChildWithProperty("MOD_ID", mod_id), &undo_manager);
 }
@@ -199,16 +227,9 @@ juce::ValueTree Matrix::getAudioTree() {
     return audio_tree;
 }
 
-void Matrix::update_modulator_parameters(NoteState main_state) {
-    // This function updates the parameters associated with modulators based on modulator current state 
-    // TODO: update modulators first and cache
-    // We compute certain modulator values multiple times. 
-    // We need to get the modulator value for every parameter
-    // The modulators can be computed and cached, and then for each parameter accessed every time.
-    for (unsigned long m_id = 0; m_id < TotalNumberModulators; ++m_id) {
-        modulators[m_id]->update_parameters(this, main_state);
-    }
-}
+// void Matrix::update_modulator_parameters(NoteState main_state) {
+    
+// }
 
 void Matrix::save_preset(juce::String preset_name) {
     // set_preset_name(preset_name);
@@ -344,7 +365,15 @@ void Matrix::load_audio_file() {
     });
 }
 
-void Matrix::queue_buffer_from_value_tree() {
+void Matrix::remove_audio_file() {
+    audio_tree.removeAllProperties(&undo_manager);
+}
+
+juce::AudioBuffer<float>* Matrix::get_audio_buffer() {
+    return audio_buffer.load();
+}
+
+void Matrix::audio_tree_changed() {
     if (audio_tree.hasProperty("NUM_CHANNELS") && audio_tree.hasProperty("NUM_SAMPLES") && audio_tree.hasProperty("DATA")) {
         auto data = audio_tree.getProperty("DATA").getBinaryData();
         auto num_channels = int(audio_tree.getProperty("NUM_CHANNELS"));
@@ -355,31 +384,40 @@ void Matrix::queue_buffer_from_value_tree() {
             for (int c = 0; c < num_channels; ++c) {
                 new_buf->copyFrom(c, 0, (num_samples * c) + data_ptr, num_samples);
             }
-            audio_buffer.queue_new_buffer(new_buf);
+            audio_buffer.queue(new_buf);
         }
     }
     else if (audio_tree.getNumProperties() == 0) {
         auto new_buf = new juce::AudioBuffer<float>(1, 1);
         new_buf->clear();
-        audio_buffer.queue_new_buffer(new_buf);
+        audio_buffer.queue(new_buf);
     }
 }
 
-void Matrix::remove_audio_file() {
-    audio_tree.removeAllProperties(&undo_manager);
-}
-
-juce::AudioBuffer<float>* Matrix::get_audio_buffer() {
-    return audio_buffer.load();
-}
-
-void Matrix::update_audio_buffers() {
-    audio_buffer.update();
+void Matrix::modulation_matrix_changed() {
+    auto matrix_copy = new juce::ValueTree("MATRIX");
+    matrix_copy->copyPropertiesAndChildrenFrom(matrix, nullptr);
+    read_only_matrix.queue(matrix_copy);
 }
 
 void Matrix::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) {
-    if (treeWhosePropertyHasChanged.hasType("AUDIO")) {
-        queue_buffer_from_value_tree();
+    if (treeWhosePropertyHasChanged.getRoot().hasType("AUDIO")) {
+        audio_tree_changed();
+    }
+    else if (treeWhosePropertyHasChanged.getRoot().hasType("MATRIX")) {
+        modulation_matrix_changed();
+    }
+}
+
+void Matrix::valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded) {
+    if (parentTree.getRoot().hasType("MATRIX")) {
+        modulation_matrix_changed();
+    }
+}
+
+void Matrix::valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) {
+    if (parentTree.getRoot().hasType("MATRIX")) {
+        modulation_matrix_changed();
     }
 }
 

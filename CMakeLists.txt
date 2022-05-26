@@ -92,7 +92,8 @@ target_sources(TEMPLATE
         src/Interface/SoundfileComponent.cpp
         src/interface/TooltipComponent.cpp
         src/matrix/Matrix.cpp
-        src/util/SafeBuffer.cpp)
+        # src/util/ThreadSafePointer.cpp
+        )
 
 # use c++ 17
 target_compile_features(TEMPLATE PRIVATE cxx_std_17) # -std=c++17
