@@ -20,6 +20,10 @@ def main():
     mod_types_enum += [f"\t{t}," for t in set(types)]
     mod_types_enum += ["};"]
 
+    mod_ids = ["static const std::array<juce::Identifier, TotalNumberModulators> MODULATOR_IDS{"]
+    mod_ids += [f'\t"{m}",' for m in modulators]
+    mod_ids += ["};"]
+
     mod_names = ["static const juce::StringArray MODULATOR_NAMES{"]
     mod_names += [f'\t"{m}",' for m in modulators]
     mod_names += ["};"]
@@ -32,7 +36,7 @@ def main():
     mod_params += ["\t{" + "".join([f"PARAM::{p}, " for p in ps.split(" ")]) + "}," for ps in params]
     mod_params += ["};"]
 
-    formatted += mod_enum + mod_types_enum + mod_names + mod_types + mod_params
+    formatted += mod_enum + mod_types_enum + mod_ids + mod_names + mod_types + mod_params
 
     with open(os.path.join(dir_path, "ModulatorDefines.h"), "w") as f:
         f.write('\n'.join(formatted))

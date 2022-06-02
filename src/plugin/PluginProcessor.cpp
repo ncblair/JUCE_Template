@@ -2,16 +2,15 @@
 #include "PluginEditor.h"
 #include "../audio/SynthVoice.h"
 #include "../matrix/Matrix.h"
-#include "../modulators/NoteState.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor()
     //  : apvts(*this, nullptr, "Parameters", createParameters())
         // matrix(parameter_names, &apvts, &modulators)
 {
-    std::cout << "Processor Constructor " << NUM_VOICES << std::endl;
+    std::cout << "Processor Constructor " << Matrix::NUM_VOICES << std::endl;
     synth.clearVoices();
-    for (auto i = 0; i < NUM_VOICES; ++i) {
+    for (auto i = 0; i < Matrix::NUM_VOICES; ++i) {
         synth.addVoice(new SynthVoice());
     }
     synth.setVoiceStealingEnabled(false);
@@ -21,6 +20,7 @@ PluginProcessor::PluginProcessor()
 
     matrix.reset(new Matrix(this));
     // property_manager.reset(new PropertyManager(this));
+    samples_to_next_control_update = Matrix::CONTROL_RATE_SAMPLES;
 }
 
 PluginProcessor::~PluginProcessor()
@@ -37,7 +37,7 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     synth.setCurrentPlaybackSampleRate(sampleRate);
     for (int i = 0; i < synth.getNumVoices(); ++i) {
         if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i))) {
-            voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels(), matrix.get());
+            voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels(), matrix.get(), i + 1);
         }
     }
 }
@@ -74,7 +74,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
         // if we have processed CONTROL_RATE_SAMPLES samples, update parameters
         if (samples_to_next_control_update == 0) {
-            samples_to_next_control_update = CONTROL_RATE_SAMPLES;
+            samples_to_next_control_update = Matrix::CONTROL_RATE_SAMPLES;
             update_parameters();
         }
     }
@@ -125,17 +125,15 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 void PluginProcessor::update_parameters() {
-    auto main_state = NoteState();
-
     // get global ms_elapsed, last_release_time, etc
     double ms_elapsed = std::numeric_limits<double>::max();
     double last_release_time = std::numeric_limits<double>::max();
     bool all_released = true;
-    // bool any_note_on = false;
+    bool any_note_on = false;
     for (int i = 0; i < synth.getNumVoices(); ++i) {
         if (auto voice = dynamic_cast<SynthVoice*>(synth.getVoice(i))) {
             if (voice->isActive()) {
-                // any_note_on = true;
+                any_note_on = true;
                 ms_elapsed = std::min(ms_elapsed, voice->getMsElapsed());
                 if (voice->isPlayingButReleased()) {
                     last_release_time = std::min(last_release_time, voice->getReleaseTime());
@@ -147,12 +145,16 @@ void PluginProcessor::update_parameters() {
         }
     }
     // TODO: change this to get the most recent note and most recently released note
-
-    main_state.set_time(ms_elapsed);
+    if (!any_note_on) {
+        main_state.set_time(0.0);
+    }
+    else {
+        main_state.set_time(ms_elapsed);
+    }
     main_state.set_release_time(last_release_time);
 
     // updates the parameters associated with the modulators + updates with thread safe objects
-    matrix->update_state(main_state);
+    matrix->update_state(&main_state);
 
     // // update the matrix's audio buffers in a thread safe way
     // matrix->update_audio_buffers();

@@ -1,11 +1,13 @@
 #include "PluginEditor.h"
 #include "../interface/FooterComponent.h"
 #include "../interface/ADSRComponent.h"
+#include "../interface/LFOComponent.h"
 #include "../interface/LabeledKnobComponent.h"
 #include "../interface/TooltipComponent.h"
 #include "../interface/PopupParameterComponent.h"
 #include "../interface/PresetBrowserComponent.h"
 #include "../interface/SoundfileComponent.h"
+#include "../interface/CLIComponent.h"
 #include "../matrix/Matrix.h"
 
 //==============================================================================
@@ -23,10 +25,16 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
                         processorRef.keyboard_state, 
                         juce::KeyboardComponentBase::Orientation::horizontalKeyboard
     );
-    auto env_ids = std::vector<int>{ADSR_1, ADSR_2, ADSR_3};
+    auto env_ids = std::vector<int>{MOD::ADSR_1, MOD::ADSR_2, MOD::ADSR_3};
     envelopes = std::make_unique<ADSRParentComponent>(
         processorRef.matrix.get(), 
         env_ids // number of envelope sub-components
+    );
+
+    auto lfo_ids = std::vector<int>{MOD::LFO_1, MOD::LFO_2, MOD::LFO_3, MOD::LFO_4};
+    lfos = std::make_unique<LFOParentComponent>(
+        processorRef.matrix.get(),
+        lfo_ids
     );
 
     gain_knob = std::make_unique<LabeledKnobComponent>(
@@ -58,6 +66,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
         processorRef.matrix.get(),
         processorRef.matrix->getAudioTree()
     );
+
+    command_line = std::make_unique<CLIComponent>(processorRef.matrix.get());
     
 
     setSize (900, 700);
@@ -73,6 +83,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 
     // envelopes
     addAndMakeVisible(*envelopes);
+
+    // lfos
+    addAndMakeVisible(*lfos);
 
     // knob
     addAndMakeVisible(*gain_knob);
@@ -90,6 +103,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
 
     // soundfile player
     addAndMakeVisible(*soundfile_component_1);
+
+    // CLI
+    addAndMakeVisible(*command_line);
 
     
     // tooltip.setMillisecondsBeforeTipAppears(0);
@@ -121,6 +137,7 @@ void AudioPluginAudioProcessorEditor::resized()
     
     auto sw = getWidth() / 900.0;
     auto sh = getHeight() / 700.0;
+    command_line->setBounds(area.removeFromBottom(proportionOfHeight(0.05f)));
     tooltip->setBounds(area.removeFromBottom(proportionOfHeight(0.05)));
     // knob_popup->setBounds(area.removeFromBottom(proportionOfHeight(0.05)));
     gain_knob->setBounds(60.0f*sw, 90.0f*sh, 50.0f*sw, 50.0f*sh);
@@ -130,6 +147,7 @@ void AudioPluginAudioProcessorEditor::resized()
     auto left = area.removeFromLeft(area.proportionOfWidth(0.6f));
     auto right_top = area.removeFromTop(area.proportionOfHeight(0.5f));
     envelopes->setBounds(right_top);
+    lfos->setBounds(area);
     auto left_top = left.removeFromTop(proportionOfHeight(0.0625f));
     auto preset_browser_area = left_top.removeFromRight(left_top.proportionOfWidth(0.5f));
     preset_browser->setBounds(preset_browser_area);

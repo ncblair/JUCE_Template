@@ -15,7 +15,7 @@ class SynthVoice : public juce::MPESynthesiserVoice {
     void noteTimbreChanged() override;
     void noteKeyStateChanged() override;
     // void controllerMoved(int controllerNumber, int newControllerValue) override;
-    void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels, Matrix* m);
+    void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels, Matrix* m, int voice_id);
     void setCurrentSampleRate (double newRate) override;
     void renderNextBlock (juce::AudioBuffer< float > &outputBuffer, int startSample, int numSamples) override;
     bool isActive() const override;

@@ -9,11 +9,14 @@ class NoteState {
     double get_time() const;
     double get_release_time() const;
     double get_frequency() const;
+    int get_voice_id() const;
     bool is_released() const;
     double get_velocity() const;
+    double get_dt() const;
     
     void set_time(double time_ms);
     void set_release_time(double release_time_ms);
+    void set_voice_id(int id);
     void release();
     void mark_unreleased();
     void set_frequency(double new_freq);
@@ -22,6 +25,7 @@ class NoteState {
 
   private:
     double ms_elapsed{0.0};
+    double delta_time{0.0};
     double release_time{std::numeric_limits<double>::max()};
     double frequency{440.0f};
 
@@ -30,4 +34,5 @@ class NoteState {
     int pressure{63};
     int slide{63};
     int lift{63};
+    int voice_id{0};
 };

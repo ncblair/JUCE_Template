@@ -71,7 +71,7 @@ void LabeledKnobComponent::mouseDown (const MouseEvent& e) {
         auto num_mods = modulators.getNumChildren();
         for (int i = 0; i < num_mods; ++i) {
             auto mod_node = modulators.getChild(i);
-            int mod_id = mod_node.getProperty("MOD_ID");
+            int mod_id = mod_node.getProperty(Matrix::MOD_ID_ID);
             right_click_menu.addItem(i + 3, "disconnect " + MODULATOR_NAMES[mod_id],true);
         }
         
@@ -99,7 +99,7 @@ void LabeledKnobComponent::mouseDown (const MouseEvent& e) {
                 else {
                     // auto num_children = modulators.getNumChildren();
                     auto mod_node = modulators.getChild(result - 3);
-                    int mod_id = mod_node.getProperty("MOD_ID");
+                    int mod_id = mod_node.getProperty(Matrix::MOD_ID_ID);
                     matrix->disconnect(mod_id, param_id);
                 }
             }

@@ -20,7 +20,7 @@ SoundfileComponent::SoundfileComponent(Matrix* m, juce::ValueTree audiotree) : a
 
     addAndMakeVisible(&file_name_label);
     file_name_label.setText("No File Loaded", juce::dontSendNotification);
-    valueTreePropertyChanged(audio_tree, juce::Identifier("NAME")); // init name correctly
+    valueTreePropertyChanged(audio_tree, Matrix::AUDIO_NAME_ID); // init name correctly
     audio_tree.addListener(this);
 }
 
@@ -43,9 +43,9 @@ void SoundfileComponent::resized() {
 // }
 
 void SoundfileComponent::valueTreePropertyChanged(ValueTree &treeWhosePropertyHasChanged, const Identifier &property){
-    if (treeWhosePropertyHasChanged.hasType("AUDIO") && property == juce::Identifier("NAME")) {
-        if (treeWhosePropertyHasChanged.hasProperty("NAME")) {
-            file_name_label.setText(treeWhosePropertyHasChanged.getProperty("NAME"), juce::dontSendNotification);
+    if (treeWhosePropertyHasChanged.hasType(Matrix::AUDIO_ID) && property == Matrix::AUDIO_NAME_ID) {
+        if (treeWhosePropertyHasChanged.hasProperty(Matrix::AUDIO_NAME_ID)) {
+            file_name_label.setText(treeWhosePropertyHasChanged.getProperty(Matrix::AUDIO_NAME_ID), juce::dontSendNotification);
             // play_button.setEnabled(true);
         }
         else {

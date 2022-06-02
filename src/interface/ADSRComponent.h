@@ -5,6 +5,7 @@ class ModulatorLabel;
 class Matrix;
 class ADSRViewer;
 
+#include "ModulatorParentComponent.h"
 #include <JuceHeader.h>
 
 class ADSRComponent : public  juce::Component {
@@ -26,18 +27,10 @@ class ADSRComponent : public  juce::Component {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ADSRComponent)
 };
 
-class ADSRParentComponent: public juce::Component {
+class ADSRParentComponent: public ModulatorParentComponent {
   public:
-    ADSRParentComponent(Matrix* matrix, std::vector<int>& mod_ids);
-    ~ADSRParentComponent() override;
-    void resized() override;
-    void mouseDown (const MouseEvent& e) override;
+    ADSRParentComponent(Matrix* m, std::vector<int>& mod_ids);
+    void init_child_components_and_visibility_attachment(Matrix* matrix, std::vector<int>& mod_ids) override;
   private:
-    std::vector<std::unique_ptr<ADSRComponent>> envelopes;
-    std::vector<std::unique_ptr<ModulatorLabel>> modulator_labels;
-    int num_envelopes;
-    int visible_envelope{0};
-    // juce::MouseListener active_envelope_listener;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ADSRParentComponent)
 };

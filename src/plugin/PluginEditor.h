@@ -3,12 +3,14 @@
 //forward declarations
 class FooterComponent;
 class ADSRParentComponent;
+class LFOParentComponent;
 class LabeledKnobComponent;
 class TooltipComponent;
 class PopupParameterComponent;
 class PresetBrowserComponent;
 class SavePresetDialog;
 class SoundfileComponent;
+class CLIComponent;
 
 //includes
 #include "PluginProcessor.h"
@@ -33,6 +35,7 @@ private:
     std::unique_ptr<FooterComponent> footer;
     std::unique_ptr<juce::MidiKeyboardComponent> midi_keyboard;
     std::unique_ptr<ADSRParentComponent> envelopes;
+    std::unique_ptr<LFOParentComponent> lfos;
     std::unique_ptr<LabeledKnobComponent> gain_knob;
     std::unique_ptr<LabeledKnobComponent> semitones_knob;
     std::unique_ptr<TooltipComponent> tooltip;
@@ -40,6 +43,7 @@ private:
     std::unique_ptr<SavePresetDialog> save_preset_popup;
     std::unique_ptr<PresetBrowserComponent> preset_browser;
     std::unique_ptr<SoundfileComponent> soundfile_component_1;
+    std::unique_ptr<CLIComponent> command_line;
     // juce::TooltipWindow tooltip{ this };
     
 

@@ -32,6 +32,10 @@ def main():
     param_enum += ["\t" + "TotalNumberParameters"]
     param_enum += ["};"]
 
+    param_ids = ["static const std::array<juce::Identifier, TotalNumberParameters> PARAMETER_IDS{"]
+    param_ids += ['\t"' + p + '",' for p in parameters]
+    param_ids += ["};"]
+
     param_names = ["static const juce::StringArray PARAMETER_NAMES{"]
     param_names += ['\t"' + p + '",' for p in parameters]
     param_names += ["};"]
@@ -48,7 +52,7 @@ def main():
     param_automatable += [f'\t{"true" if a == "1" else "false"},' for a in automatable]
     param_automatable += ["};"]
 
-    formatted += param_enum + param_names + param_ranges + param_defaults + param_automatable
+    formatted += param_enum + param_ids + param_names + param_ranges + param_defaults + param_automatable
 
     with open(os.path.join(dir_path, "ParameterDefines.h"), "w") as f:
         f.write('\n'.join(formatted))

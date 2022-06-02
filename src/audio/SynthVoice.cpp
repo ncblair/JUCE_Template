@@ -52,7 +52,7 @@ void SynthVoice::noteKeyStateChanged() {
     
 }
 
-void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels, Matrix* m) {
+void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels, Matrix* m, int voice_id) {
 
     // set up parameters
     matrix = m;
@@ -66,6 +66,8 @@ void SynthVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outpu
 
     write_pointers.resize(outputChannels);
     sample_read_pointers.resize(outputChannels);
+
+    note_state.set_voice_id(voice_id);
 }
 
 void SynthVoice::setCurrentSampleRate (double newRate) {
@@ -131,10 +133,11 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int sta
 }
 
 void SynthVoice::update_parameters() {
+    matrix->updateModulatorCache(&note_state);
     for (int p_id = 0; p_id < NumVoiceParams; ++p_id) {
-        params[p_id].setTargetValue(matrix->modulatedParamValue(param_ids[p_id], note_state));
+        params[p_id].setTargetValue(matrix->modulatedParamValue(param_ids[p_id], &note_state, true));
     }
     // gain is taken directly from env 1 value, not an apvts parameter
-    gain.setTargetValue(matrix->modulatorValue(MOD::ADSR_1, note_state));
+    gain.setTargetValue(matrix->modulatorValue(MOD::ADSR_1, &note_state));
     
 }

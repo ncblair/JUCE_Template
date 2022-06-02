@@ -60,50 +60,23 @@ void ADSRComponent::resized() {
 // ADSRParentComponent
 //==============================================================================
 
-ADSRParentComponent::ADSRParentComponent(Matrix* matrix, std::vector<int>& mod_ids) {
-    num_envelopes = mod_ids.size();
-
-    for (int i = 0; i < num_envelopes; ++i) {
-        envelopes.push_back(std::make_unique<ADSRComponent>(matrix, mod_ids[i]));
-        addChildComponent(*(envelopes[i]));
-        
-        modulator_labels.push_back(std::make_unique<ModulatorLabel>(
-            matrix, 
-            mod_ids[i],
-            "Draggable Component for Modulator " + MODULATOR_NAMES[mod_ids[i]], 
-            MODULATOR_NAMES[mod_ids[i]]
-        ));
-        addAndMakeVisible(*(modulator_labels[i]));
-        modulator_labels[i]->addMouseListener(this, true);
-    }
-    envelopes[visible_envelope]->setVisible(true);
-    modulator_labels[visible_envelope]->setSelected(true);
-
-    // addMouseListener(&active_envelope_listener, true);
+ADSRParentComponent::ADSRParentComponent(Matrix* matrix, std::vector<int>& mod_ids) 
+    : ModulatorParentComponent(matrix, mod_ids)
+{
+    init_child_components_and_visibility_attachment(matrix, mod_ids);
 }
 
-ADSRParentComponent::~ADSRParentComponent() {
-
-}
-
-void ADSRParentComponent::resized() {
-    auto area = getLocalBounds();
-    auto bottom_bar = area.removeFromBottom(area.proportionOfHeight(0.1));
-    for (auto& envelope : envelopes) {
-        envelope->setBounds(area);
+void ADSRParentComponent::init_child_components_and_visibility_attachment(Matrix* matrix, std::vector<int>& mod_ids)
+{
+    for (int i = 0; i < num_children; ++i) {
+        child_components.push_back(std::make_unique<ADSRComponent>(matrix, mod_ids[i]));
+        addChildComponent(*(child_components[i]));
     }
-    auto mod_label_width = area.proportionOfWidth(1.0/double(num_envelopes));
-    for (auto& mod_label : modulator_labels) {
-        mod_label->setBounds(bottom_bar.removeFromLeft(mod_label_width));
-    }
-}
 
-void ADSRParentComponent::mouseDown (const MouseEvent& e) {
-    if (auto comp = dynamic_cast<ModulatorLabel*>(e.eventComponent)) {
-        envelopes[visible_envelope]->setVisible(false);
-        modulator_labels[visible_envelope]->setSelected(false);
-        visible_envelope = comp->getModID();
-        envelopes[visible_envelope]->setVisible(true);
-        modulator_labels[visible_envelope]->setSelected(true);
-    }
+    visible_child_attachment = std::make_unique<juce::ParameterAttachment>(
+        *(matrix->get_parameter(PARAM::ADSR_VISIBLE_ID)), 
+        std::function<void (float)>([this](float x){set_visible(int(x));}), 
+        matrix->getUndoManager()
+    );
+    set_visible(visible_child);
 }

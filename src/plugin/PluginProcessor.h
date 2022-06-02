@@ -2,8 +2,10 @@
 
 class Matrix;
 class PropertyManager;
+class NoteState;
 
 #include "PluginProcessorBase.h"
+#include "../modulators/NoteState.h"
 // #include "../audio/ADSR.h"
 
 // #include "../util/Matrix.h"
@@ -29,8 +31,6 @@ public:
     //==============================================================================
     // Constants
     //==============================================================================
-    const int NUM_VOICES{20};
-    const int CONTROL_RATE_SAMPLES{64};
 
     //==============================================================================
     // Managers
@@ -45,7 +45,8 @@ public:
     // State Variables
     // + info from the synthesiser for modulation
     //==============================================================================
-    int samples_to_next_control_update{CONTROL_RATE_SAMPLES};
+    NoteState main_state;
+    int samples_to_next_control_update;
 
     //==============================================================================
     // MPE
