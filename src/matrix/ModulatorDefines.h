@@ -12,8 +12,8 @@ enum MOD {
 	TotalNumberModulators
 };
 enum MOD_TYPES {
-	LFO_MOD,
 	ADSR_MOD,
+	LFO_MOD,
 };
 static const std::array<juce::Identifier, TotalNumberModulators> MODULATOR_IDS{
 	"ADSR_1",

@@ -2,7 +2,12 @@
 #include "../matrix/Matrix.h"
 
 
-CLIComponent::CLIComponent(Matrix* m)  {
+CLIComponent::CLIComponent(Matrix* m) :
+    COMMANDS({
+        {"CONNECT", [this](juce::String args) -> juce::String { return process_connect(args);}},
+        {"DISCONNECT", [this](juce::String args) -> juce::String { return process_disconnect(args);}},
+    })
+{
     // undo redo
     matrix = m;
 
@@ -27,7 +32,9 @@ CLIComponent::CLIComponent(Matrix* m)  {
     cli_entry.onReturnKey = [this]() {send_command();};
     cli_entry.addKeyListener(this);
     cli_entry.addListener(this);
-    
+
+    auto cmd_regex_string = juce::String("(") + join(COMMANDS, "|") + ")";
+    cmd_regex = std::regex(cmd_regex_string.toStdString());
 }
 
 void CLIComponent::paint(juce::Graphics& g) {
@@ -46,18 +53,26 @@ void CLIComponent::resized() {
 
 void CLIComponent::send_command() {
     auto cmd = cli_entry.getText();
-    auto error_msg = matrix->enter_command(cmd);
+    auto error_msg = process_command(cmd);
     cli_entry.clear();
     error_message_container.setText(error_msg, juce::NotificationType::dontSendNotification);
 }
 
+juce::String CLIComponent::get_next_command(juce::String root) {
+    return "";
+}
+juce::String CLIComponent::get_prev_command(juce::String root) {
+    return "";
+}
+
+
 bool CLIComponent::keyPressed(const juce::KeyPress &kp, juce::Component *orig) {
     if (cli_entry.isTextInputActive()) {
         if (kp == juce::KeyPress::upKey) {
-            cli_entry.setText(matrix->get_prev_command(root), juce::NotificationType::dontSendNotification);
+            cli_entry.setText(get_prev_command(m_root), juce::NotificationType::dontSendNotification);
         }
         else if (kp == juce::KeyPress::downKey) {
-            cli_entry.setText(matrix->get_next_command(root), juce::NotificationType::dontSendNotification);
+            cli_entry.setText(get_next_command(m_root), juce::NotificationType::dontSendNotification);
         }
     }
     return false;
@@ -65,4 +80,68 @@ bool CLIComponent::keyPressed(const juce::KeyPress &kp, juce::Component *orig) {
 
 void CLIComponent::textEditorTextChanged(TextEditor &) {
     // error_message_container.setText("", juce::NotificationType::dontSendNotification);
+}
+
+juce::ValueTree CLIComponent::get_state() {
+
+}
+void CLIComponent::set_state(juce::ValueTree master_state) {
+
+}
+
+juce::String CLIComponent::process_command(juce::String text) {
+    // cmd(arg1, arg2, arg3)
+    auto trimmed = text.toUpperCase().replace(" ", "", false);
+    auto cmd = trimmed.upToFirstOccurrenceOf("(", false, false);
+    auto rest = trimmed.substring(cmd.length()+1);
+    auto result = juce::String("");
+    if (std::regex_match(cmd.toStdString(), cmd_regex)) {
+        result += COMMANDS[cmd](rest);
+    }
+    else {
+        result = "Error: Can't understand " + cmd;
+    }
+    return result;
+}
+
+juce::String CLIComponent::process_connect(juce::String args) {
+    // connect(int mod_id, int param_id, float depth);
+    auto mod_id = args.initialSectionNotContaining(",");
+    auto rest = args.substring(mod_id.length()+1);
+    auto param_id = rest.initialSectionNotContaining(",");
+    rest = rest.substring(param_id.length()+1);
+    auto depth = rest.initialSectionNotContaining(")");
+
+    auto m_id = MODULATOR_NAMES.indexOf(mod_id); 
+    auto p_id = PARAMETER_NAMES.indexOf(param_id);
+    // TODO: Check if can be turned into Float
+    auto d = depth.getFloatValue();
+
+    if (m_id == -1 || p_id == -1 || d > 1.0f || d < 0.0f)  {
+        // return "ERROR WRONG: " + std::to_string(m_id) + " " + std::to_string(p_id) + " " + std::to_string(d);
+        return "ERROR WRONG: " + mod_id + " " + param_id + " " + depth;
+
+    }
+    matrix->connect(m_id, p_id, d);
+
+    return "CONNECT COMMAND: " + args;
+}
+
+
+juce::String CLIComponent::process_disconnect(juce::String args) {
+    return "DISCONNECT COMMAND: " + args;
+}
+
+juce::String CLIComponent::join(const std::unordered_map<juce::String, std::function<juce::String(juce::String)>>& string_map, juce::String delimiter) {
+    auto value = juce::String("");
+    bool firstTime{true};
+    for (auto& e : string_map) {
+        if (firstTime) {
+            firstTime = false;
+        } else {
+            value += delimiter;
+        }
+        value += e.first;
+    }
+    return value;
 }

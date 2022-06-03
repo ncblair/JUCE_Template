@@ -85,10 +85,10 @@ class Matrix : public juce::ValueTree::Listener {
     std::shared_ptr<juce::ValueTree> get_read_only_lfo_tree();
     void init_lfo_tree();
 
-    // CLI
-    juce::String get_next_command(juce::String root);
-    juce::String get_prev_command(juce::String root);
-    juce::String enter_command(juce::String text);
+    // // CLI
+    // juce::String get_next_command(juce::String root);
+    // juce::String get_prev_command(juce::String root);
+    // juce::String enter_command(juce::String text);
 
     juce::UndoManager* getUndoManager();
     

@@ -535,15 +535,15 @@ void Matrix::init_lfo_tree() {
     lfo_tree.copyPropertiesAndChildrenFrom(new_lfo_tree, &undo_manager);
 }
 
-juce::String Matrix::get_next_command(juce::String root) {
-    return "";
-}
-juce::String Matrix::get_prev_command(juce::String root) {
-    return "";
-}
-juce::String Matrix::enter_command(juce::String text) {
-    return "command entered";
-}
+// juce::String Matrix::get_next_command(juce::String root) {
+//     return "";
+// }
+// juce::String Matrix::get_prev_command(juce::String root) {
+//     return "";
+// }
+// juce::String Matrix::enter_command(juce::String text) {
+//     return "command entered";
+// }
 
 juce::UndoManager* Matrix::getUndoManager() {
     return &undo_manager;
