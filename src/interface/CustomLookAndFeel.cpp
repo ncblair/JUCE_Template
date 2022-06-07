@@ -1,15 +1,15 @@
 #include "CustomLookAndFeel.h"
 
 CustomLookAndFeel::CustomLookAndFeel() {
-    setColour(juce::TooltipWindow::backgroundColourId, juce::Colours::white);
-    setColour(juce::TooltipWindow::textColourId, juce::Colours::black);
-    setColour(juce::TooltipWindow::outlineColourId, juce::Colours::transparentWhite);
+    // setColour(juce::TooltipWindow::backgroundColourId, juce::Colours::white);
+    // setColour(juce::TooltipWindow::textColourId, juce::Colours::black);
+    // setColour(juce::TooltipWindow::outlineColourId, juce::Colours::transparentWhite);
     LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface(getTypefaceForFont(font));
 }
 
 //https://docs.juce.com/master/tutorial_look_and_feel_customisation.html
 void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
-                                        const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider&) {
+                                        const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider& slider) {
     auto radius = (float) juce::jmin (width / 2, height / 2) - 4.0f;
     auto centreX = (float) x + (float) width  * 0.5f;
     auto centreY = (float) y + (float) height * 0.5f;
@@ -19,7 +19,12 @@ void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w
     auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
     // fill circle
-    g.setColour (juce::Colours::black);
+    if (slider.isEnabled()) {
+        g.setColour(juce::Colours::black);
+    }
+    else {
+        g.setColour (juce::Colours::lightgrey);
+    }
     g.fillEllipse (rx, ry, rw, rw);
 
     // pointer
@@ -55,30 +60,30 @@ void CustomLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label) {
 //     font.setHeight(fontSize);
 // }
 
-juce::Rectangle<int> CustomLookAndFeel::getTooltipBounds(const String& tipText, juce::Point<int> screenPos, juce::Rectangle<int> parentArea) {
-    parentArea.removeFromLeft(parentArea.proportionOfWidth(0.02f));
-    parentArea.removeFromRight(parentArea.proportionOfWidth(0.05f));
-    return parentArea.removeFromBottom(parentArea.proportionOfHeight(tooltip_height));;
-}
+// juce::Rectangle<int> CustomLookAndFeel::getTooltipBounds(const String& tipText, juce::Point<int> screenPos, juce::Rectangle<int> parentArea) {
+//     parentArea.removeFromLeft(parentArea.proportionOfWidth(0.02f));
+//     parentArea.removeFromRight(parentArea.proportionOfWidth(0.05f));
+//     return parentArea.removeFromBottom(parentArea.proportionOfHeight(tooltip_height));;
+// }
 
-void CustomLookAndFeel::drawTooltip (Graphics& g, const String& text, int width, int height)
-{
-    Rectangle<int> bounds (width, height);
-    auto cornerSize = 0.0f;
+// void CustomLookAndFeel::drawTooltip (Graphics& g, const String& text, int width, int height)
+// {
+//     Rectangle<int> bounds (width, height);
+//     auto cornerSize = 0.0f;
 
-    g.setColour (findColour (juce::TooltipWindow::backgroundColourId));
-    g.fillRoundedRectangle (bounds.toFloat(), cornerSize);
+//     g.setColour (findColour (juce::TooltipWindow::backgroundColourId));
+//     g.fillRoundedRectangle (bounds.toFloat(), cornerSize);
 
-    g.setColour (findColour (juce::TooltipWindow::outlineColourId));
-    g.drawRoundedRectangle (bounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+//     g.setColour (findColour (juce::TooltipWindow::outlineColourId));
+//     g.drawRoundedRectangle (bounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
 
-    const int maxToolTipWidth = 400;
+//     const int maxToolTipWidth = 400;
 
-    AttributedString s;
-    s.setJustification (juce::Justification::centredLeft);
-    s.append (text, font, findColour(juce::TooltipWindow::textColourId));
+//     AttributedString s;
+//     s.setJustification (juce::Justification::centredLeft);
+//     s.append (text, font, findColour(juce::TooltipWindow::textColourId));
 
-    TextLayout tl;
-    tl.createLayoutWithBalancedLineLengths (s, (float) maxToolTipWidth);
-    tl.draw (g, {static_cast<float> (width), static_cast<float> (height)});
-}
+//     TextLayout tl;
+//     tl.createLayoutWithBalancedLineLengths (s, (float) maxToolTipWidth);
+//     tl.draw (g, {static_cast<float> (width), static_cast<float> (height)});
+// }

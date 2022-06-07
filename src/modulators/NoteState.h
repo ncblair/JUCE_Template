@@ -12,7 +12,7 @@ class NoteState {
     int get_voice_id() const;
     bool is_released() const;
     double get_velocity() const;
-    double get_dt() const;
+    // double get_dt() const;
     
     void set_time(double time_ms);
     void set_release_time(double release_time_ms);
@@ -25,7 +25,7 @@ class NoteState {
 
   private:
     double ms_elapsed{0.0};
-    double delta_time{0.0};
+    // double delta_time{0.0};
     double release_time{std::numeric_limits<double>::max()};
     double frequency{440.0f};
 

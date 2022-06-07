@@ -33,31 +33,6 @@ void LFOViewer::paint (juce::Graphics& g) {
 
     auto num_points = sub_tree.getNumChildren();
 
-    // draw the waveform
-    juce::Path p;
-    g.setColour (juce::Colours::black);
-    p.startNewSubPath(0, h);
-
-    int h_id = 0;
-    for (int i = 0; i <= PRECISION; i++) {
-        auto phase = float(i) / PRECISION;
-        auto x_pos = w * phase;
-        while (h_id < handles.size() && 
-                handles[h_id]->isVisible() && 
-                x_pos >= handles[h_id]->getX() + r) {
-            p.lineTo(handles[h_id]->getX() + r, handles[h_id]->getY() + r);
-            h_id++;
-        }
-        if (h_id >= handles.size()) {
-            break;
-        }
-        else {
-            //TODO: Draw in curves
-        }
-    }
-
-    g.strokePath(p, juce::PathStrokeType(2));
-
     auto height = h - float(h)*float(sub_tree.getProperty(Matrix::LFO_HEIGHT_ID));
     
     handles[0]->setCentrePosition(0, height);
@@ -95,6 +70,32 @@ void LFOViewer::paint (juce::Graphics& g) {
     handles[1 + 2 * num_points]->constrain((x + 1.0)*w/2.0, 0, 0, h);
     handles[2 + 2 * num_points]->setCentrePosition(w, height);
     handles[2 + 2 * num_points]->constrain(w, 0, 0, h);
+
+
+    // draw the waveform
+    juce::Path p;
+    g.setColour (juce::Colours::black);
+    p.startNewSubPath(0, h);
+
+    int h_id = 0;
+    for (int i = 0; i <= PRECISION; i++) {
+        auto phase = float(i) / PRECISION;
+        auto x_pos = w * phase;
+        while (h_id < handles.size() && 
+                handles[h_id]->isVisible() && 
+                x_pos >= handles[h_id]->getX() + r) {
+            p.lineTo(handles[h_id]->getX() + r, handles[h_id]->getY() + r);
+            h_id++;
+        }
+        if (h_id >= handles.size()) {
+            break;
+        }
+        else {
+            //TODO: Draw in curves
+        }
+    }
+
+    g.strokePath(p, juce::PathStrokeType(2));
 
     // for (int i = 0; i < handle_ids.size() - 1; ++i) {
     //     auto curve_handle = dynamic_cast<VerticalCurveHandle*>(handles[handle_ids[i]].get());

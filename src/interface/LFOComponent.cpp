@@ -24,6 +24,10 @@ LFOComponent::LFOComponent(Matrix* matrix, int mod_id) {
     addAndMakeVisible(*lfo_viewer);
 }
 
+LFOComponent::~LFOComponent() {
+    
+}
+
 void LFOComponent::paint (juce::Graphics& g) {
     g.fillAll (juce::Colours::skyblue);
 }
@@ -40,23 +44,23 @@ void LFOComponent::resized() {
 //==============================================================================
 
 
-LFOParentComponent::LFOParentComponent(Matrix* matrix, std::vector<int>& mod_ids) 
-    : ModulatorParentComponent(matrix, mod_ids)
-{
-    init_child_components_and_visibility_attachment(matrix, mod_ids);
-}
+// LFOParentComponent::LFOParentComponent(Matrix* m, std::vector<int>& mod_ids) 
+//     : ModulatorParentComponent(m, mod_ids)
+// {
+//     init_child_components_and_visibility_attachment(m, mod_ids);
+// }
 
-void LFOParentComponent::init_child_components_and_visibility_attachment(Matrix* matrix, std::vector<int>& mod_ids)
-{
-    for (int i = 0; i < num_children; ++i) {
-        child_components.push_back(std::make_unique<LFOComponent>(matrix, mod_ids[i]));
-        addChildComponent(*(child_components[i]));
-    }
+// void LFOParentComponent::init_child_components_and_visibility_attachment(Matrix* m, std::vector<int>& mod_ids)
+// {
+//     for (int i = 0; i < num_children; ++i) {
+//         child_components.push_back(std::make_unique<LFOComponent>(m, mod_ids[i]));
+//         addChildComponent(*(child_components[i]));
+//     }
 
-    visible_child_attachment = std::make_unique<juce::ParameterAttachment>(
-        *(matrix->get_parameter(PARAM::LFO_VISIBLE_ID)), 
-        std::function<void (float)>([this](float x){set_visible(int(x));}), 
-        matrix->getUndoManager()
-    );
-    set_visible(visible_child);
-}
+//     // visible_child_attachment = std::make_unique<juce::ParameterAttachment>(
+//     //     *(m->get_parameter(PARAM::LFO_VISIBLE_ID)), 
+//     //     std::function<void (float)>([this](float x){set_visible(int(x));}), 
+//     //     m->getUndoManager()
+//     // );
+//     set_visible(visible_child);
+// }

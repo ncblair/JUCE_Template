@@ -8,7 +8,8 @@
 
 
 Matrix::Matrix(PluginProcessor* proc) : 
-    PRESETS_DIR(juce::File::getSpecialLocation(juce::File::SpecialLocationType::userMusicDirectory).getChildFile("nthn_plugins").getChildFile("template").getChildFile("presets"))
+    PRESETS_DIR(juce::File::getSpecialLocation(juce::File::SpecialLocationType::userMusicDirectory).getChildFile("nthn_plugins").getChildFile("template").getChildFile("presets")),
+    CLI_HISTORY_FILE(juce::File::getSpecialLocation(juce::File::SpecialLocationType::userMusicDirectory).getChildFile("nthn_plugins").getChildFile("template").getChildFile("cli_history").withFileExtension(".template_data"))
 {
     //==============================================================================
     //-> ADD PARAMS/PROPERTIES
@@ -75,6 +76,12 @@ Matrix::Matrix(PluginProcessor* proc) :
     
     audio_tree = juce::ValueTree(AUDIO_ID);
     format_manager.registerBasicFormats();
+
+    //==============================================================================
+    //-> SETUP CLI HISTORY TREE
+    //==============================================================================
+
+    cli_tree = juce::ValueTree(CLI_TREE_ID);
 
     //==============================================================================
     //-> SAFE BUFFER INIT and ADD LISTENERS
@@ -158,6 +165,19 @@ std::unique_ptr<Modulator> Matrix::create_modulator(int mod_id) {
     }
 }
 
+juce::Value Matrix::get_mod_depth(int mod_id, int param_id) {
+    auto mod = get_mod_node(mod_id, param_id);
+    return mod.getPropertyAsValue(MOD_DEPTH_ID, &undo_manager, true);
+}
+
+bool Matrix::is_connected(int mod_id, int param_id) {
+    return get_mod_node(mod_id, param_id).isValid();
+}
+
+juce::ValueTree Matrix::get_mod_node(int mod_id, int param_id) {
+    return getModulators(param_id).getChildWithProperty(MOD_ID_ID, mod_id);
+}
+
 float Matrix::modulatorValue(int mod_id, NoteState* note_state) {
     // returns the current modulator value
     auto result = modulators[mod_id]->get(note_state);
@@ -204,7 +224,7 @@ void Matrix::connect(int mod_id, int param_id, float depth) {
     jassert (PARAMETER_AUTOMATABLE[param_id]);
     
     // called from UI thread
-    juce::ValueTree param_modulators = matrix.getChildWithName(PARAMETER_IDS[param_id]);
+    juce::ValueTree param_modulators = getModulators(param_id);
     bool already_connected = false;
     for (int i = 0; i < param_modulators.getNumChildren(); ++i) {
         auto mod_node = param_modulators.getChild(i);
@@ -230,8 +250,8 @@ void Matrix::disconnect(int mod_id, int param_id) {
     jassert (PARAMETER_AUTOMATABLE[param_id]);
 
     std::cout << "DISCONNECT " << MODULATOR_NAMES[mod_id] << " FROM " << PARAMETER_NAMES[param_id] << std::endl;
+    auto param_modulators = getModulators(param_id);
     // called from UI Thread
-    juce::ValueTree param_modulators = matrix.getChildWithName(PARAMETER_IDS[param_id]);
     param_modulators.removeChild(param_modulators.getChildWithProperty(MOD_ID_ID, mod_id), &undo_manager);
 }
 
@@ -268,6 +288,10 @@ juce::ValueTree Matrix::getAudioTree() {
 
 juce::ValueTree Matrix::getLFOTree() {
     return lfo_tree;
+}
+
+juce::ValueTree Matrix::getCLITree() {
+    return cli_tree;
 }
 
 juce::ValueTree Matrix::get_state() {
@@ -312,14 +336,39 @@ void Matrix::load_from(juce::XmlElement* xml) {
     if (xml != nullptr){
         if (xml->hasTagName (STATE_ID)){
             auto new_tree = juce::ValueTree::fromXml(*xml);
+            // apvts_ptr->replaceState(new_tree.getChildWithName(PARAMETERS_ID));
             apvts_ptr->state.copyPropertiesAndChildrenFrom(new_tree.getChildWithName(PARAMETERS_ID), &undo_manager);
             property_tree_ptr->state.copyPropertiesAndChildrenFrom(new_tree.getChildWithName(PROPERTIES_ID), &undo_manager);
+            // property_tree_ptr->replaceState(new_tree.getChildWithName(PROPERTIES_ID));
             matrix.copyPropertiesAndChildrenFrom(new_tree.getChildWithName(MATRIX_ID), &undo_manager);
             preset_tree.copyPropertiesFrom(new_tree.getChildWithName(PRESET_ID), &undo_manager);
             audio_tree.copyPropertiesFrom(new_tree.getChildWithName(AUDIO_ID), &undo_manager);
             lfo_tree.copyPropertiesAndChildrenFrom(new_tree.getChildWithName(LFO_TREE_ID), &undo_manager);
         }
     }
+}
+
+void Matrix::load_cli_history() {
+    if (CLI_HISTORY_FILE.existsAsFile()) {
+        std::unique_ptr<juce::XmlElement> xmlState = juce::XmlDocument::parse(CLI_HISTORY_FILE);
+        auto xml = xmlState.get();
+        if (xml!=nullptr) {
+            if (xml->hasTagName(CLI_TREE_ID)) {
+                auto new_tree = juce::ValueTree::fromXml(*xml);
+                cli_tree.copyPropertiesAndChildrenFrom(new_tree, nullptr);
+            }
+        }
+    } 
+}
+
+void Matrix::save_cli_history() {
+    if (!CLI_HISTORY_FILE.existsAsFile()) {
+        CLI_HISTORY_FILE.create();
+    }
+    std::unique_ptr<juce::XmlElement> xml (cli_tree.createXml());
+    auto temp = juce::File::createTempFile("templamte_cli_history_temp");
+    xml->writeTo(temp);
+    temp.replaceFileIn(CLI_HISTORY_FILE);
 }
 
 void Matrix::set_preset_name(juce::String preset_name) {
@@ -336,6 +385,24 @@ juce::RangedAudioParameter* Matrix::get_parameter(int param_id) {
     }
     else {
         return property_tree_ptr->getParameter(PARAMETER_IDS[param_id]);
+    }
+}
+
+void Matrix::addParameterListener(int param_id, juce::AudioProcessorValueTreeState::Listener* listener) {
+    if (PARAMETER_AUTOMATABLE[param_id]) {
+        return apvts_ptr->addParameterListener(PARAMETER_NAMES[param_id], listener);
+    }
+    else {
+        return property_tree_ptr->addParameterListener(PARAMETER_NAMES[param_id], listener);
+    }
+}
+
+void Matrix::removeParameterListener(int param_id, juce::AudioProcessorValueTreeState::Listener* listener) {
+    if (PARAMETER_AUTOMATABLE[param_id]) {
+        return apvts_ptr->removeParameterListener(PARAMETER_NAMES[param_id], listener);
+    }
+    else {
+        return property_tree_ptr->removeParameterListener(PARAMETER_NAMES[param_id], listener);
     }
 }
 
@@ -449,32 +516,32 @@ void Matrix::lfo_tree_changed() {
 }
 
 void Matrix::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) {
-    if (treeWhosePropertyHasChanged.getRoot().hasType(AUDIO_ID)) {
+    if (treeWhosePropertyHasChanged.getRoot() == audio_tree) {
         audio_tree_changed();
     }
-    else if (treeWhosePropertyHasChanged.getRoot().hasType(MATRIX_ID)) {
+    else if (treeWhosePropertyHasChanged.getRoot() == matrix) {
         modulation_matrix_changed();
     }
-    else if (treeWhosePropertyHasChanged.getRoot().hasType(LFO_TREE_ID)) {
+    else if (treeWhosePropertyHasChanged.getRoot() == lfo_tree) {
         lfo_tree_changed();
     }
 }
 
 void Matrix::valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded) {
-    if (parentTree.getRoot().hasType(MATRIX_ID)) {
+    if (parentTree.getRoot() == matrix) {
         modulation_matrix_changed();
     }
-    else if (parentTree.getRoot().hasType(LFO_TREE_ID)) {
+    else if (parentTree.getRoot() == lfo_tree) {
         lfo_tree_changed();
         std::cout << "LFO Point Added" << std::endl;
     }
 }
 
 void Matrix::valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) {
-    if (parentTree.getRoot().hasType(MATRIX_ID)) {
+    if (parentTree.getRoot() == matrix) {
         modulation_matrix_changed();
     }
-    else if (parentTree.getRoot().hasType(LFO_TREE_ID)) {
+    else if (parentTree.getRoot() == lfo_tree) {
         lfo_tree_changed();
     }
 }

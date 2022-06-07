@@ -2,8 +2,8 @@
 
 //forward declarations
 class FooterComponent;
-class ADSRParentComponent;
-class LFOParentComponent;
+// class ADSRParentComponent;
+class ModulatorParentComponent;
 class LabeledKnobComponent;
 class TooltipComponent;
 class PopupParameterComponent;
@@ -34,8 +34,8 @@ private:
 
     std::unique_ptr<FooterComponent> footer;
     std::unique_ptr<juce::MidiKeyboardComponent> midi_keyboard;
-    std::unique_ptr<ADSRParentComponent> envelopes;
-    std::unique_ptr<LFOParentComponent> lfos;
+    std::unique_ptr<ModulatorParentComponent> envelopes;
+    std::unique_ptr<ModulatorParentComponent> lfos;
     std::unique_ptr<LabeledKnobComponent> gain_knob;
     std::unique_ptr<LabeledKnobComponent> semitones_knob;
     std::unique_ptr<TooltipComponent> tooltip;

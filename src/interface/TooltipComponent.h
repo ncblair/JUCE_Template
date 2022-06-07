@@ -6,7 +6,7 @@ class TooltipComponent : public juce::Component, public juce::Timer {
   public:
     TooltipComponent();
 
-    // void paint (juce::Graphics&) override;
+    // void paint (juce::Graphics& g) override;
     void resized() override;
     void timerCallback() override;
   private:

@@ -5,6 +5,10 @@ TooltipComponent::TooltipComponent() {
     addAndMakeVisible(tooltip_text);
 }
 
+// void TooltipComponent::paint(juce::Graphics& g) {
+//     g.fillAll(juce::Colours::green);
+// }
+
 void TooltipComponent::resized() {
     tooltip_text.setBounds(getLocalBounds());
 }
@@ -12,7 +16,17 @@ void TooltipComponent::resized() {
 juce::String TooltipComponent::getTipFor(juce::Component& c) {
     if (auto* ttc = dynamic_cast<juce::TooltipClient*> (&c)) {
         if (! c.isCurrentlyBlockedByAnotherModalComponent()) {
-            return ttc->getTooltip();
+            auto name = c.getName();
+            auto tip = ttc->getTooltip();
+            if (name == "") {
+                return tip;
+            }
+            else if (tip == "") {
+                return name;
+            }
+            else {
+                return name + ": " + tip;
+            }
         }
     }
             

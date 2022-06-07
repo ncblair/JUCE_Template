@@ -35,6 +35,11 @@ CLIComponent::CLIComponent(Matrix* m) :
 
     auto cmd_regex_string = juce::String("(") + join(COMMANDS, "|") + ")";
     cmd_regex = std::regex(cmd_regex_string.toStdString());
+    float_regex = std::regex("[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)");
+
+    cli_tree = matrix->getCLITree();
+    cli_history_index = 0;
+    m_root = "";
 }
 
 void CLIComponent::paint(juce::Graphics& g) {
@@ -54,44 +59,82 @@ void CLIComponent::resized() {
 void CLIComponent::send_command() {
     auto cmd = cli_entry.getText();
     auto error_msg = process_command(cmd);
+    add_to_cli_history(cmd);
+    cli_history_index = 0;
+    m_root = "";
     cli_entry.clear();
+    cli_entry.moveCaretToEnd();
     error_message_container.setText(error_msg, juce::NotificationType::dontSendNotification);
+    repaint();
+    
 }
 
 juce::String CLIComponent::get_next_command(juce::String root) {
-    return "";
+    auto history_depth = cli_tree.getNumChildren();
+    if (history_depth == 0) {
+        return "";
+    }
+    cli_history_index = cli_history_index >= history_depth ? history_depth : cli_history_index + 1;
+    return  cli_tree.getChild(history_depth - cli_history_index).getProperty(Matrix::CLI_COMMAND_ID).toString();
 }
+
 juce::String CLIComponent::get_prev_command(juce::String root) {
-    return "";
+    auto history_depth = cli_tree.getNumChildren();
+    if (history_depth == 0) {
+        return "";
+    }
+    cli_history_index = cli_history_index <= 0 ? 0 : cli_history_index - 1;
+    if (cli_history_index == 0) {
+        return root;
+    }
+    else {
+        return cli_tree.getChild(history_depth - cli_history_index).getProperty(Matrix::CLI_COMMAND_ID).toString();
+    }
+}
+
+void CLIComponent::add_to_cli_history(juce::String cmd) {
+    if (cmd != "") {
+        auto new_cmd_child = juce::ValueTree(Matrix::CLI_COMMAND_ID);
+        new_cmd_child.setProperty(Matrix::CLI_COMMAND_ID, cmd, nullptr);
+        cli_tree.appendChild(new_cmd_child, nullptr);
+        if (cli_tree.getNumChildren() > Matrix::MAX_CLI_HISTORY) {
+            cli_tree.removeChild(0, nullptr);
+        }
+        matrix->save_cli_history();
+    }
 }
 
 
 bool CLIComponent::keyPressed(const juce::KeyPress &kp, juce::Component *orig) {
     if (cli_entry.isTextInputActive()) {
         if (kp == juce::KeyPress::upKey) {
-            cli_entry.setText(get_prev_command(m_root), juce::NotificationType::dontSendNotification);
+            cli_entry.setText(get_next_command(m_root), juce::NotificationType::dontSendNotification);
         }
         else if (kp == juce::KeyPress::downKey) {
-            cli_entry.setText(get_next_command(m_root), juce::NotificationType::dontSendNotification);
+            cli_entry.setText(get_prev_command(m_root), juce::NotificationType::dontSendNotification);
         }
     }
     return false;
 }
 
-void CLIComponent::textEditorTextChanged(TextEditor &) {
+void CLIComponent::textEditorTextChanged(TextEditor& editor) {
     // error_message_container.setText("", juce::NotificationType::dontSendNotification);
+    m_root = editor.getText();
 }
 
-juce::ValueTree CLIComponent::get_state() {
+// juce::ValueTree CLIComponent::get_state() {
 
-}
-void CLIComponent::set_state(juce::ValueTree master_state) {
+// }
+// void CLIComponent::set_state(juce::ValueTree master_state) {
 
-}
+// }
 
 juce::String CLIComponent::process_command(juce::String text) {
     // cmd(arg1, arg2, arg3)
     auto trimmed = text.toUpperCase().replace(" ", "", false);
+    if (!trimmed.contains("(")) {
+        return "Error: Invalid Command, missing '('";
+    }
     auto cmd = trimmed.upToFirstOccurrenceOf("(", false, false);
     auto rest = trimmed.substring(cmd.length()+1);
     auto result = juce::String("");
@@ -105,22 +148,34 @@ juce::String CLIComponent::process_command(juce::String text) {
 }
 
 juce::String CLIComponent::process_connect(juce::String args) {
-    // connect(int mod_id, int param_id, float depth);
-    auto mod_id = args.initialSectionNotContaining(",");
-    auto rest = args.substring(mod_id.length()+1);
-    auto param_id = rest.initialSectionNotContaining(",");
-    rest = rest.substring(param_id.length()+1);
-    auto depth = rest.initialSectionNotContaining(")");
+    auto args_list = get_args(args);
+    if (args_list.size() < 3) {
+        return "Error: too few arguments. expected 3, got " + std::to_string(args_list.size());
+    }
+    else if (args_list.size() > 3) {
+        return "Error: too many arguments. expected 3, got " + std::to_string(args_list.size());
+    }
+    auto mod_id = args_list[0];
+    auto param_id = args_list[1];
+    auto depth = args_list[2];
 
     auto m_id = MODULATOR_NAMES.indexOf(mod_id); 
     auto p_id = PARAMETER_NAMES.indexOf(param_id);
-    // TODO: Check if can be turned into Float
-    auto d = depth.getFloatValue();
 
-    if (m_id == -1 || p_id == -1 || d > 1.0f || d < 0.0f)  {
-        // return "ERROR WRONG: " + std::to_string(m_id) + " " + std::to_string(p_id) + " " + std::to_string(d);
-        return "ERROR WRONG: " + mod_id + " " + param_id + " " + depth;
-
+    float d;
+    if (std::regex_match(depth.toStdString(), float_regex)) {
+        d = depth.getFloatValue();
+    } else {
+        return "Error: wrong type for argument depth. expected float, got " + depth;
+    }
+    if (d < 0.0f || d > 1.0f) {
+        return "Error: modulation depth out of range. expected 0-1, got " + depth;
+    }
+    if (m_id == -1) {
+        return "Error: modulator not recognized. got " + mod_id;
+    }
+    if (p_id == -1) {
+        return "Error: parameter not recognized. got " + param_id;
     }
     matrix->connect(m_id, p_id, d);
 
@@ -129,7 +184,65 @@ juce::String CLIComponent::process_connect(juce::String args) {
 
 
 juce::String CLIComponent::process_disconnect(juce::String args) {
+        auto args_list = get_args(args);
+    if (args_list.size() < 2) {
+        return "Error: too few arguments. expected 3, got " + std::to_string(args_list.size());
+    }
+    else if (args_list.size() > 2) {
+        return "Error: too many arguments. expected 3, got " + std::to_string(args_list.size());
+    }
+    auto mod_id = args_list[0];
+    auto param_id = args_list[1];
+
+    auto m_id = MODULATOR_NAMES.indexOf(mod_id);
+    auto p_id = PARAMETER_NAMES.indexOf(param_id);
+    if (m_id == -1) {
+        return "Error: modulator not recognized. got " + mod_id;
+    }
+    if (p_id == -1) {
+        return "Error: parameter not recognized. got " + param_id;
+    }
+    matrix->disconnect(m_id, p_id);
+
     return "DISCONNECT COMMAND: " + args;
+}
+
+std::vector<juce::String> CLIComponent::get_args(juce::String args) {
+    std::cout << args.toStdString() << std::endl;
+    auto arg_list = std::vector<juce::String>();
+    int nest = 0;
+    int index = 0;
+    auto arg_length = args.length();
+    while (index < arg_length) {
+        auto cur = args[index];
+        if (cur == '(') {
+            nest++;
+        }
+        else if (cur == ')') {
+            if (nest == 0) {
+                arg_list.push_back(args.substring(0, index));
+                std::cout << args.substring(0, index).toStdString() << std::endl;
+                return arg_list;
+            }
+            else {
+                nest--;
+            }
+        }
+        else if (cur == ',') {
+            if (nest == 0) {
+                arg_list.push_back(args.substring(0, index));
+                std::cout << args.substring(0, index).toStdString() << std::endl;
+                args = args.substring(index+1);
+                arg_length = args.length();
+                index = 0;
+            }
+        }
+        index++;
+    }
+    if (nest > 0) {
+        std::cout << "No end Paren" << std::endl;
+    }
+    return arg_list;
 }
 
 juce::String CLIComponent::join(const std::unordered_map<juce::String, std::function<juce::String(juce::String)>>& string_map, juce::String delimiter) {

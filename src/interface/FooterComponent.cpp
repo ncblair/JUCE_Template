@@ -16,6 +16,7 @@ FooterComponent::FooterComponent(Matrix* m) : undoButton("undo"), redoButton("re
     mpe_button.setColour(juce::ToggleButton::ColourIds::tickColourId, juce::Colours::black);
     mpe_button.setColour(juce::ToggleButton::ColourIds::tickDisabledColourId, juce::Colours::black);
     mpe_button.setTooltip("Enable Midi Polyphonic Expression (MPE)");
+    mpe_button.setName(PARAMETER_NAMES[PARAM::ENABLE_MPE]);
     // //attach mpe button
     mpe_button_attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(*(m->getPropertyTree()), PARAMETER_NAMES[PARAM::ENABLE_MPE], mpe_button);
     

@@ -58,6 +58,7 @@ enum PARAM {
 	ADSR_3_VIEWER_ZOOM,
 	ADSR_VISIBLE_ID,
 	LFO_VISIBLE_ID,
+	SELECTED_MODULATOR_ID,
 	TotalNumberParameters
 };
 static const std::array<juce::Identifier, TotalNumberParameters> PARAMETER_IDS{
@@ -118,6 +119,7 @@ static const std::array<juce::Identifier, TotalNumberParameters> PARAMETER_IDS{
 	"ADSR_3_VIEWER_ZOOM",
 	"ADSR_VISIBLE_ID",
 	"LFO_VISIBLE_ID",
+	"SELECTED_MODULATOR_ID",
 };
 static const juce::StringArray PARAMETER_NAMES{
 	"LEVEL",
@@ -177,6 +179,7 @@ static const juce::StringArray PARAMETER_NAMES{
 	"ADSR_3_VIEWER_ZOOM",
 	"ADSR_VISIBLE_ID",
 	"LFO_VISIBLE_ID",
+	"SELECTED_MODULATOR_ID",
 };
 static const juce::Array<juce::NormalisableRange<float>> PARAMETER_RANGES {
 	juce::NormalisableRange<float>(-60.0f, 6.0f, 0.0f, 1.0f),
@@ -236,6 +239,7 @@ static const juce::Array<juce::NormalisableRange<float>> PARAMETER_RANGES {
 	juce::NormalisableRange<float>(0.3f, 60.0f, 0.0f, 1.0f),
 	juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f, 1.0f),
 	juce::NormalisableRange<float>(0.0f, 3.0f, 1.0f, 1.0f),
+	juce::NormalisableRange<float>(0.0f, 6.0f, 1.0f, 1.0f),
 };
 static const juce::Array<float> PARAMETER_DEFAULTS {
 	-12.0f,
@@ -295,6 +299,7 @@ static const juce::Array<float> PARAMETER_DEFAULTS {
 	3.5f,
 	0.0f,
 	0.0f,
+	0.0f,
 };
 static const juce::Array<bool> PARAMETER_AUTOMATABLE {
 	true,
@@ -347,6 +352,7 @@ static const juce::Array<bool> PARAMETER_AUTOMATABLE {
 	true,
 	true,
 	true,
+	false,
 	false,
 	false,
 	false,

@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 #include "../interface/FooterComponent.h"
-#include "../interface/ADSRComponent.h"
-#include "../interface/LFOComponent.h"
+#include "../interface/ModulatorParentComponent.h"
+// #include "../interface/LFOComponent.h"
 #include "../interface/LabeledKnobComponent.h"
 #include "../interface/TooltipComponent.h"
 #include "../interface/PopupParameterComponent.h"
@@ -26,13 +26,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
                         juce::KeyboardComponentBase::Orientation::horizontalKeyboard
     );
     auto env_ids = std::vector<int>{MOD::ADSR_1, MOD::ADSR_2, MOD::ADSR_3};
-    envelopes = std::make_unique<ADSRParentComponent>(
+    envelopes = std::make_unique<ModulatorParentComponent>(
         processorRef.matrix.get(), 
         env_ids // number of envelope sub-components
     );
 
     auto lfo_ids = std::vector<int>{MOD::LFO_1, MOD::LFO_2, MOD::LFO_3, MOD::LFO_4};
-    lfos = std::make_unique<LFOParentComponent>(
+    lfos = std::make_unique<ModulatorParentComponent>(
         processorRef.matrix.get(),
         lfo_ids
     );
@@ -95,7 +95,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (PluginProcesso
     addAndMakeVisible(*knob_popup);
 
     // tooltip
-    addChildComponent(*tooltip);
+    addAndMakeVisible(*tooltip);
 
     // preset browser
     addAndMakeVisible(*preset_browser);

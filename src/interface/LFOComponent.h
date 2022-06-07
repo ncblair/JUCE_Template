@@ -4,13 +4,13 @@ class LabeledKnobComponent;
 class ModulatorLabel;
 class Matrix;
 class LFOViewer;
-#include "ModulatorParentComponent.h"
+// #include "ModulatorParentComponent.h"
 #include <JuceHeader.h>
 
 class LFOComponent : public juce::Component {
   public:
     LFOComponent(Matrix* matrix, int mod_id);
-    // ~LFOComponent() override;
+    ~LFOComponent() override;
     void paint (juce::Graphics& g) override;
     void resized() override;
 
@@ -25,10 +25,11 @@ class LFOComponent : public juce::Component {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LFOComponent)
 };
 
-class LFOParentComponent: public ModulatorParentComponent {
-  public:
-    LFOParentComponent(Matrix* matrix, std::vector<int>& mod_ids);
-    void init_child_components_and_visibility_attachment(Matrix* matrix, std::vector<int>& mod_ids) override;
-  private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LFOParentComponent)
-};
+// class LFOParentComponent: public ModulatorParentComponent {
+//   public:
+//     LFOParentComponent(Matrix* matrix, std::vector<int>& mod_ids);
+//     void init_child_components_and_visibility_attachment(Matrix* matrix, std::vector<int>& mod_ids) override;
+//     // void parameterChanged (const juce::String &parameterID, float newValue) override;
+//   private:
+//     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LFOParentComponent)
+// };

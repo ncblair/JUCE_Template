@@ -39,9 +39,9 @@ ADSRComponent::ADSRComponent(Matrix* matrix, int mod_id) {
     addAndMakeVisible(*adsr_viewer);    
 }
 
-// ADSRComponent::~ADSRComponent() {
+ADSRComponent::~ADSRComponent() {
 
-// }
+}
 
 void ADSRComponent::paint (juce::Graphics& g) {
     g.fillAll (juce::Colours::skyblue);
@@ -60,23 +60,23 @@ void ADSRComponent::resized() {
 // ADSRParentComponent
 //==============================================================================
 
-ADSRParentComponent::ADSRParentComponent(Matrix* matrix, std::vector<int>& mod_ids) 
-    : ModulatorParentComponent(matrix, mod_ids)
-{
-    init_child_components_and_visibility_attachment(matrix, mod_ids);
-}
+// ADSRParentComponent::ADSRParentComponent(Matrix* m, std::vector<int>& mod_ids) 
+//     : ModulatorParentComponent(m, mod_ids)
+// {
+//     init_child_components_and_visibility_attachment(m, mod_ids);
+// }
 
-void ADSRParentComponent::init_child_components_and_visibility_attachment(Matrix* matrix, std::vector<int>& mod_ids)
-{
-    for (int i = 0; i < num_children; ++i) {
-        child_components.push_back(std::make_unique<ADSRComponent>(matrix, mod_ids[i]));
-        addChildComponent(*(child_components[i]));
-    }
+// void ADSRParentComponent::init_child_components_and_visibility_attachment(Matrix* m, std::vector<int>& mod_ids)
+// {
+//     for (int i = 0; i < num_children; ++i) {
+//         child_components.push_back(std::make_unique<ADSRComponent>(m, mod_ids[i]));
+//         addChildComponent(*(child_components[i]));
+//     }
 
-    visible_child_attachment = std::make_unique<juce::ParameterAttachment>(
-        *(matrix->get_parameter(PARAM::ADSR_VISIBLE_ID)), 
-        std::function<void (float)>([this](float x){set_visible(int(x));}), 
-        matrix->getUndoManager()
-    );
-    set_visible(visible_child);
-}
+//     visible_child_attachment = std::make_unique<juce::ParameterAttachment>(
+//         *(m->get_parameter(PARAM::ADSR_VISIBLE_ID)), 
+//         std::function<void (float)>([this](float x){set_visible(int(x));}), 
+//         m->getUndoManager()
+//     );
+//     set_visible(visible_child);
+// }

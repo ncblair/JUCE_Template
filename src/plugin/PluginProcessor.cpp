@@ -79,6 +79,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         }
     }
 
+    midiMessages.clear();
+
     // // copy to fill up all channels with same info
     // auto read_pointer = buffer.getReadPointer(0, 0);
     // for (auto c = 1; c < totalNumOutputChannels; ++c) {
@@ -115,6 +117,7 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     // whose contents will have been created by the getStateInformation() call.
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
     matrix->load_from(xmlState.get());
+    matrix->load_cli_history();
 }
 
 //==============================================================================

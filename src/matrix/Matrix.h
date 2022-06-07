@@ -38,13 +38,17 @@ class Matrix : public juce::ValueTree::Listener {
     juce::ValueTree getMatrix();
     juce::ValueTree getAudioTree();
     juce::ValueTree getLFOTree();
+    juce::ValueTree getCLITree();
     juce::ValueTree get_state();
     
 
-    // called on UI thread (This may need to be thread safe, but not realtime safe)
+    // called on UI thread 
     Modulator* getModulator(int mod_id);
     juce::ValueTree getModulators(int param_id);
     std::unique_ptr<Modulator> create_modulator(int mod_id);
+    juce::Value get_mod_depth(int mod_id, int param_id); // be careful, this value will change whenever a new preset is loaded
+    bool is_connected(int mod_id, int param_id);
+    juce::ValueTree get_mod_node(int mod_id, int param_id);
     
     // called from UI thread
     void connect(int mod_id, int param_id, float depth);
@@ -55,11 +59,15 @@ class Matrix : public juce::ValueTree::Listener {
     void save_preset(juce::String preset_name);
     void load_preset(juce::String preset_name);
     void load_from(juce::XmlElement* xml);
+    void load_cli_history();
+    void save_cli_history();
     void set_preset_name(juce::String preset_name);
     juce::String get_preset_name();
 
     // called from UI thread
     juce::RangedAudioParameter* get_parameter(int param_id);
+    void addParameterListener(int param_id, juce::AudioProcessorValueTreeState::Listener* listener);
+    void removeParameterListener(int param_id, juce::AudioProcessorValueTreeState::Listener* listener);
     void set_parameter(int param_id, float value);
     void reset_parameter(int param_id);
     void init();
@@ -96,8 +104,11 @@ class Matrix : public juce::ValueTree::Listener {
     const float DEFAULT_MOD_DEPTH{0.3};
     const int MAX_NUM_AUDIO_FILES{2};
     const juce::File PRESETS_DIR; // initialized in initializer list
+    const juce::File CLI_HISTORY_FILE;
     static const int NUM_VOICES{20};
     static const int CONTROL_RATE_SAMPLES{64};
+    static const int MAX_CLI_HISTORY{1000};
+    
 
     // const identifiers
     static inline const juce::Identifier MATRIX_ID{"MATRIX"};
@@ -121,6 +132,8 @@ class Matrix : public juce::ValueTree::Listener {
     static inline const juce::Identifier LFO_POINT_X_ID{"LFO_POINT_X"};
     static inline const juce::Identifier LFO_POINT_Y_ID{"LFO_POINT_Y"};
     static inline const juce::Identifier LFO_POINT_CURVE_ID{"LFO_POINT_CURVE"};
+    static inline const juce::Identifier CLI_TREE_ID{"CLI_TREE"};
+    static inline const juce::Identifier CLI_COMMAND_ID{"CLI_COMMAND"};
 
   private:
     juce::ValueTree state;
@@ -130,6 +143,7 @@ class Matrix : public juce::ValueTree::Listener {
     juce::ValueTree preset_tree;
     juce::ValueTree audio_tree;
     juce::ValueTree lfo_tree;
+    juce::ValueTree cli_tree;
 
     // What happens if we write to this? Add a modulator, say by command line? 
     // We will probably need to store modulators serialized in a valueTree

@@ -18,13 +18,14 @@ class CLIComponent : public juce::Component ,
     // CLI
     juce::String get_next_command(juce::String root);
     juce::String get_prev_command(juce::String root);
+    void add_to_cli_history(juce::String cmd);
     juce::String process_command(juce::String text);
 
     bool keyPressed(const juce::KeyPress &kp, juce::Component *orig) override;
-    void textEditorTextChanged(TextEditor &) override;
+    void textEditorTextChanged(TextEditor& editor) override;
 
-    juce::ValueTree get_state();
-    void set_state(juce::ValueTree master_state);
+    // juce::ValueTree get_state();
+    // void set_state(juce::ValueTree master_state);
     
   private:
     Matrix* matrix;
@@ -34,10 +35,16 @@ class CLIComponent : public juce::Component ,
     juce::Label error_message_container;
     juce::TextEditor cli_entry;
 
+    juce::ValueTree cli_tree;
+    int cli_history_index;
+
     std::regex cmd_regex;
+    std::regex float_regex;
 
     juce::String process_connect(juce::String args);
     juce::String process_disconnect(juce::String args);
+
+    std::vector<juce::String> get_args(juce::String args);
 
     std::unordered_map<juce::String, std::function<juce::String(juce::String)>> COMMANDS;
 

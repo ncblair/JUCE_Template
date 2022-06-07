@@ -33,5 +33,6 @@ class LFOModulator : public Modulator{
     std::vector<int> param_ids;
     std::shared_ptr<juce::ValueTree> lfo_tree;
     std::vector<double> phase;
+    std::vector<double> time;
     // double phase = 0.0; // 0 to 1
 };

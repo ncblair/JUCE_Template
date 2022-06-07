@@ -3,7 +3,7 @@
 
 ModulatorLabel::ModulatorLabel(Matrix* matrix, int modulator_id, juce::String tooltip, juce::String label_str) {
     mod_id = modulator_id;
-    selected = false;
+    selected = SELECTION::NO;
     addAndMakeVisible(label);
     label.setText (label_str, juce::dontSendNotification);
     label.setTooltip(tooltip);
@@ -14,17 +14,20 @@ ModulatorLabel::ModulatorLabel(Matrix* matrix, int modulator_id, juce::String to
 // ModulatorLabel::~ModulatorLabel(){
 
 // }
+
 void ModulatorLabel::paint (juce::Graphics& g) {
     g.setColour (juce::Colours::black);
     g.drawRect(getLocalBounds());
-    if (selected) {
+    if (selected == SELECTION::YES_GLOBAL) {
         g.setColour(juce::Colours::lightslategrey);
-        g.fillRect(getLocalBounds());
+    }
+    else if (selected == SELECTION::YES_LOCAL) {
+        g.setColour(juce::Colours::lightgrey);
     }
     else {
         g.setColour(juce::Colours::transparentWhite);
-        g.fillRect(getLocalBounds());
     }
+    g.fillRect(getLocalBounds());
 }
 
 void ModulatorLabel::resized() {
@@ -35,8 +38,8 @@ int ModulatorLabel::getModID() {
     return mod_id;
 }
 
-void ModulatorLabel::setSelected(bool is_selected) {
-    selected = is_selected;
+void ModulatorLabel::setSelected(int selected_type) {
+    selected = selected_type;
     repaint();
 }
 

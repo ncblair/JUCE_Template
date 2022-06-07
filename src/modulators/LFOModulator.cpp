@@ -7,6 +7,7 @@ LFOModulator::LFOModulator(const std::vector<int> p_ids) {
     param_ids = p_ids;
     params.fill(0.0f);
     phase.resize(Matrix::NUM_VOICES + 1, 0.0);
+    time.resize(Matrix::NUM_VOICES + 1, 0.0);
 }
 
 void LFOModulator::update_parameters(Matrix* matrix, NoteState* main_state) {
@@ -27,8 +28,10 @@ float LFOModulator::get(NoteState* note_state) {
     TODO: only call from audio thread or use something clever like atomics
     get position in envelope after ms milliseconds
     */
-    double dt_ms = note_state->get_dt(); // assume mode is trigger
+    // double dt_ms = note_state->get_dt(); // assume mode is trigger
     int voice_id = note_state->get_voice_id();
+    double dt_ms = note_state->get_time() - time[voice_id];
+    time[voice_id] = note_state->get_time();
     // std::cout << dt_ms << " " << voice_id << std::endl;
     if (dt_ms < 0.0) {
         phase[voice_id] = 0.0;
@@ -73,8 +76,14 @@ float LFOModulator::get(NoteState* note_state) {
         right_x = 1.0f;
         right_y = height;
     }
-
-    auto percent = (cur_x - left_x) / (right_x - left_x);
+    auto percent = (right_x == left_x) ? 1.0 : (cur_x - left_x) / (right_x - left_x);
+    // if (right_x == left_x) {
+    //     // vertical line
+    //     percent = 1.0;
+    // }
+    // else {
+    //     percent = (cur_x - left_x) / (right_x - left_x);
+    // }
     //TODO: curve
     // TODO: all modulators in ValueTree format
     auto cur_y = percent * right_y + (1.0f-percent) * left_y;
