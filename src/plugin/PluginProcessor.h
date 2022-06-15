@@ -1,21 +1,20 @@
 #pragma once
 
 class Matrix;
-class PropertyManager;
-class NoteState;
+#if NEEDS_MODULATORS
+  class NoteState;
+#endif
 
 #include "PluginProcessorBase.h"
-#include "../modulators/NoteState.h"
-// #include "../audio/ADSR.h"
-
-// #include "../util/Matrix.h"
-// #include "../util/Modulator.h"
-
+#include "../matrix/ParameterDefines.h"
+#if NEEDS_MODULATORS
+  #include "../modulators/NoteState.h"
+#endif
 
 //==============================================================================
 class PluginProcessor  : public PluginProcessorBase
 {
-public:
+  public:
     //==============================================================================
     PluginProcessor();
     ~PluginProcessor() override;
@@ -26,40 +25,52 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     //==============================================================================
+    void numChannelsChanged() override;
+    //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
 
     //==============================================================================
-    // Constants
+    // Matrix
     //==============================================================================
+    std::unique_ptr<Matrix> matrix;
 
     //==============================================================================
-    // Managers
+    // Synthesiser stuff
     //==============================================================================
-    juce::MidiKeyboardState keyboard_state; // create MidiKeyboardState for MIDI Visualization and Playback
-    std::unique_ptr<Matrix> matrix;
-    // std::unique_ptr<PropertyManager> property_manager;
-    // juce::FileLogger logger;
+    #if JucePlugin_IsSynth
+      juce::MidiKeyboardState keyboard_state; // create MidiKeyboardState for MIDI Visualization and Playback
+    #endif
 
   private:
     //==============================================================================
     // State Variables
     // + info from the synthesiser for modulation
     //==============================================================================
-    NoteState main_state;
+    #if NEEDS_MODULATORS
+      NoteState main_state;
+    #endif
     int samples_to_next_control_update;
 
     //==============================================================================
-    // MPE
+    // MPE Synth
     //==============================================================================
-    juce::MPESynthesiser synth;
-    juce::MPEZoneLayout zone_layout;
-    bool is_mpe_enabled{false};
+    #if JucePlugin_IsSynth
+      juce::MPESynthesiser synth;
+      juce::MPEZoneLayout zone_layout;
+      bool is_mpe_enabled{false};
+
+      void process_synth(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages);
+
+      void update_mpe();
+      void enable_mpe();
+      void disable_mpe();
+    #endif
 
     //==============================================================================
     // Parameters
     //==============================================================================
     void update_parameters();
-    void update_MPE_enable();
+    std::array<float, PARAM::TOTAL_NUMBER_PARAMETERS> params;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)

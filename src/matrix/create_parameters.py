@@ -29,10 +29,10 @@ def main():
 
     param_enum = ["enum PARAM {"]
     param_enum += ["\t" + p + "," for p in parameters]
-    param_enum += ["\t" + "TotalNumberParameters"]
+    param_enum += ["\t" + "TOTAL_NUMBER_PARAMETERS"]
     param_enum += ["};"]
 
-    param_ids = ["static const std::array<juce::Identifier, TotalNumberParameters> PARAMETER_IDS{"]
+    param_ids = ["static const std::array<juce::Identifier, TOTAL_NUMBER_PARAMETERS> PARAMETER_IDS{"]
     param_ids += ['\t"' + p + '",' for p in parameters]
     param_ids += ["};"]
 

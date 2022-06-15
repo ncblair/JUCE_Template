@@ -59,9 +59,9 @@ enum PARAM {
 	ADSR_VISIBLE_ID,
 	LFO_VISIBLE_ID,
 	SELECTED_MODULATOR_ID,
-	TotalNumberParameters
+	TOTAL_NUMBER_PARAMETERS
 };
-static const std::array<juce::Identifier, TotalNumberParameters> PARAMETER_IDS{
+static const std::array<juce::Identifier, TOTAL_NUMBER_PARAMETERS> PARAMETER_IDS{
 	"LEVEL",
 	"SEMITONES",
 	"ADSR_1_ATTACK",
@@ -182,7 +182,7 @@ static const juce::StringArray PARAMETER_NAMES{
 	"SELECTED_MODULATOR_ID",
 };
 static const juce::Array<juce::NormalisableRange<float>> PARAMETER_RANGES {
-	juce::NormalisableRange<float>(-60.0f, 6.0f, 0.0f, 1.0f),
+	juce::NormalisableRange<float>(-60.0f, 0.0f, 0.0f, 1.0f),
 	juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f, 1.0f),
 	juce::NormalisableRange<float>(0.0f, 5000.0f, 0.0f, 0.75f),
 	juce::NormalisableRange<float>(0.1f, 10.0f, 0.0f, 0.2890649616f),

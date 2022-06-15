@@ -13,14 +13,14 @@ def main():
 
     mod_enum = ["enum MOD {"]
     mod_enum += [f"\t{m}," for m in modulators]
-    mod_enum += ["\tTotalNumberModulators"]
+    mod_enum += ["\tTOTAL_NUMBER_MODULATORS"]
     mod_enum += ["};"]
 
     mod_types_enum = ["enum MOD_TYPES {"]
     mod_types_enum += [f"\t{t}," for t in set(types)]
     mod_types_enum += ["};"]
 
-    mod_ids = ["static const std::array<juce::Identifier, TotalNumberModulators> MODULATOR_IDS{"]
+    mod_ids = ["static const std::array<juce::Identifier, TOTAL_NUMBER_MODULATORS> MODULATOR_IDS{"]
     mod_ids += [f'\t"{m}",' for m in modulators]
     mod_ids += ["};"]
 

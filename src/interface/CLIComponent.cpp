@@ -159,7 +159,7 @@ juce::String CLIComponent::process_connect(juce::String args) {
     auto param_id = args_list[1];
     auto depth = args_list[2];
 
-    auto m_id = MODULATOR_NAMES.indexOf(mod_id); 
+    auto m_id = MODULATOR_NAMES.indexOf(mod_id);
     auto p_id = PARAMETER_NAMES.indexOf(param_id);
 
     float d;

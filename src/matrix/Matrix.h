@@ -148,8 +148,8 @@ class Matrix : public juce::ValueTree::Listener {
     // What happens if we write to this? Add a modulator, say by command line? 
     // We will probably need to store modulators serialized in a valueTree
     // and also thread safe. oof. 
-    std::array<std::unique_ptr<Modulator>, MOD::TotalNumberModulators> modulators;
-    std::array<float, MOD::TotalNumberModulators> modulator_value_cache;
+    std::array<std::unique_ptr<Modulator>, MOD::TOTAL_NUMBER_MODULATORS> modulators;
+    std::array<float, MOD::TOTAL_NUMBER_MODULATORS> modulator_value_cache;
 
     // Undo Manager
     juce::UndoManager undo_manager;

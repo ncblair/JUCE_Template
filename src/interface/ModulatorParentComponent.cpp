@@ -63,24 +63,13 @@ void ModulatorParentComponent::resized() {
 }
 
 void ModulatorParentComponent::mouseDown (const MouseEvent& e) {
-    // TODO: lets get rid of this visible_child_attachment and just use matrix
     if (auto comp = dynamic_cast<ModulatorLabel*>(e.eventComponent)) {
-        // visible_child_attachment->setValueAsPartOfGesture(mod_id_to_index[comp->getModID()]);
         matrix->set_parameter(PARAM::SELECTED_MODULATOR_ID, comp->getModID());
     }
 }
 
-// void ModulatorParentComponent::set_visible(int child_id) {
-    // child_components[visible_child]->setVisible(ModulatorLabel::SELECTION::NO);
-    // modulator_labels[visible_child]->setSelected(ModulatorLabel::SELECTION::NO);
-    // visible_child = child_id;
-    // child_components[visible_child]->setVisible(ModulatorLabel::SELECTION::YES_GLOBAL);
-    // modulator_labels[visible_child]->setSelected(ModulatorLabel::SELECTION::YES_GLOBAL);
-// }
-
 void ModulatorParentComponent::parameterChanged (const juce::String &parameterID, float newValue) {
     if (parameterID == PARAMETER_NAMES[PARAM::SELECTED_MODULATOR_ID]) {
-        // std::cout << "Selected Modulator Changed " << std::endl;
         if (mod_id_to_index.count(newValue) > 0) { // this class manages this mod_id
             // selected a new child within the same class
             child_components[visible_child]->setVisible(false);
@@ -100,6 +89,5 @@ void ModulatorParentComponent::parameterChanged (const juce::String &parameterID
             child_components[visible_child]->setVisible(true);
             modulator_labels[visible_child]->setSelected(ModulatorLabel::SELECTION::YES_LOCAL);
         }
-        // std::cout << "end mod selection changed" << std::endl;
     }
 }

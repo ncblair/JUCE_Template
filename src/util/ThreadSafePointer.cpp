@@ -16,7 +16,6 @@ template <class T>
 std::shared_ptr<T> ThreadSafePointer<T>::load() {
     // load a pointer to the current
     return std::atomic_load(&m_cur_ptr);
-    // return cur_ptr_atomic.load();
 }
 
 template <class T>

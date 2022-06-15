@@ -16,11 +16,9 @@ class ThreadSafePointer {
     std::shared_ptr<T> load();
 
   private:
-    // // an atomic pointer to the current
-    // std::atomic<std::shared_ptr<T>> cur_ptr_atomic;
-    // // an atomic pointer to the temporary
-    // std::atomic<std::shared_ptr<T>> temp_ptr_atomic;
+    // an atomic pointer to the current
     std::shared_ptr<T> m_cur_ptr;
+    // an atomic pointer to the temporary
     std::shared_ptr<T> m_temp_ptr;
 };
 

@@ -17,7 +17,7 @@ Matrix::Matrix(PluginProcessor* proc) :
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> properties;
 
-    for (int p_id = 0; p_id < PARAM::TotalNumberParameters; ++p_id) {
+    for (int p_id = 0; p_id < PARAM::TOTAL_NUMBER_PARAMETERS; ++p_id) {
         (PARAMETER_AUTOMATABLE[p_id] ? params : properties).push_back(
             std::make_unique<juce::AudioParameterFloat>(
                 PARAMETER_NAMES[p_id],   // parameter ID
@@ -48,7 +48,7 @@ Matrix::Matrix(PluginProcessor* proc) :
     //==============================================================================
     lfo_tree = juce::ValueTree(LFO_TREE_ID);
 
-    for (int m_id = 0; m_id < MOD::TotalNumberModulators; ++m_id) {
+    for (int m_id = 0; m_id < MOD::TOTAL_NUMBER_MODULATORS; ++m_id) {
         modulators[m_id] = create_modulator(m_id);
     }
     modulator_value_cache.fill(0.0f);
@@ -58,7 +58,7 @@ Matrix::Matrix(PluginProcessor* proc) :
     //==============================================================================
 
     matrix = juce::ValueTree(MATRIX_ID);
-    for (int p_id = 0; p_id < PARAM::TotalNumberParameters; ++p_id) {
+    for (int p_id = 0; p_id < PARAM::TOTAL_NUMBER_PARAMETERS; ++p_id) {
         if (PARAMETER_AUTOMATABLE[p_id]) {
             matrix.appendChild(juce::ValueTree(PARAMETER_IDS[p_id]), nullptr);
         }
@@ -121,7 +121,7 @@ void Matrix::update_state(NoteState* main_state) {
     // We need to get the modulator value for every parameter
     // The modulators can be computed and cached, and then for each parameter accessed every time.
     updateModulatorCache(main_state);
-    for (unsigned long m_id = 0; m_id < MOD::TotalNumberModulators; ++m_id) {
+    for (unsigned long m_id = 0; m_id < MOD::TOTAL_NUMBER_MODULATORS; ++m_id) {
         modulators[m_id]->update_parameters(this, main_state);
     }
 }
@@ -215,7 +215,7 @@ float Matrix::modulatedParamValue(int param_id, NoteState* note_state, bool use_
 }
 
 void Matrix::updateModulatorCache(NoteState* note_state) {
-    for (int m_id = 0; m_id < MOD::TotalNumberModulators; ++m_id) {
+    for (int m_id = 0; m_id < MOD::TOTAL_NUMBER_MODULATORS; ++m_id) {
         modulator_value_cache[m_id] = modulatorValue(m_id, note_state);
     }
 }
@@ -419,7 +419,7 @@ void Matrix::reset_parameter(int param_id) {
 }
 
 void Matrix::init() {
-    for (int i = 0; i < PARAM::TotalNumberParameters; ++i) {
+    for (int i = 0; i < PARAM::TOTAL_NUMBER_PARAMETERS; ++i) {
         reset_parameter(i);
         if (PARAMETER_AUTOMATABLE[i]) {
             disconnect_all(i);
@@ -503,11 +503,6 @@ void Matrix::audio_tree_changed() {
 }
 
 void Matrix::modulation_matrix_changed() {
-    // // auto matrix_copy = new juce::ValueTree(MATRIX_ID);
-    // auto matrix_copy = std::make_shared<juce::ValueTree>(MATRIX_ID);
-    // // temporary_matrix_tree = juce::ValueTree(MATRIX_ID);
-    // matrix_copy->copyPropertiesAndChildrenFrom(matrix, nullptr);
-    // read_only_matrix.queue(matrix_copy);
     read_only_matrix.queue(std::make_shared<juce::ValueTree>(matrix.createCopy()));
 }
 
@@ -585,7 +580,7 @@ std::shared_ptr<juce::ValueTree> Matrix::get_read_only_lfo_tree() {
 void Matrix::init_lfo_tree() {
     auto new_lfo_tree = juce::ValueTree(LFO_TREE_ID);
 
-    for (int mod_id = 0; mod_id < TotalNumberModulators; ++mod_id) {
+    for (int mod_id = 0; mod_id < TOTAL_NUMBER_MODULATORS; ++mod_id) {
         if (MODULATOR_TYPES[mod_id] == MOD_TYPES::LFO_MOD) {
             auto lfo_sub_tree = juce::ValueTree(MODULATOR_IDS[mod_id]);
             lfo_sub_tree.setProperty(LFO_HEIGHT_ID, 0.0f, nullptr);

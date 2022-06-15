@@ -14,6 +14,9 @@ PluginProcessorBase::PluginProcessorBase()
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                       #endif
+                      #if NEEDS_SIDECHAIN
+                       .withInput  ("Sidechain",  juce::AudioChannelSet::stereo(), true)
+                      #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        )
@@ -113,8 +116,19 @@ bool PluginProcessorBase::isBusesLayoutSupported (const BusesLayout& layouts) co
 
     // This checks if the input layout matches the output layout
    #if ! JucePlugin_IsSynth
+    #if NEEDS_SIDECHAIN
+        if (layouts.getChannelSet(true, 1) != layouts.getMainInputChannelSet()) {
+            return false;
+        }
+    #endif
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
+   #else
+    #if NEEDS_SIDECHAIN
+        if (layouts.getChannelSet(true, 0) != layouts.getMainInputChannelSet()) {
+            return false;
+        }
+    #endif
    #endif
 
     return true;
